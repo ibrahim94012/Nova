@@ -152,14 +152,25 @@ input,select,textarea{font-family:inherit;}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
 @media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr;}}
 
-/* Order Barcode grid — compact cards, more per row since the barcode itself is small */
-.ob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
-.ob-card{padding:10px;text-align:center;}
-.ob-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;}
-.ob-card-canvas{background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px;display:flex;align-items:center;justify-content:center;min-height:44px;}
+/* Order Barcode grid — sized so the barcode is comfortably scannable/printable */
+.ob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
+.ob-card{padding:14px;text-align:center;}
+.ob-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;}
+.ob-card-canvas{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 8px;display:flex;align-items:center;justify-content:center;min-height:74px;}
 .ob-card-canvas canvas{max-width:100%;}
-.ob-card .btn-icon{width:28px;height:28px;font-size:11px;}
-@media(max-width:520px){.ob-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}}
+.ob-card .btn-icon{width:32px;height:32px;font-size:12.5px;}
+.ob-card .row-actions{flex-wrap:wrap;}
+@media(max-width:680px){
+  .ob-grid{grid-template-columns:repeat(auto-fill,minmax(46%,1fr));gap:12px;}
+  .ob-card{padding:16px 12px;box-shadow:var(--shadow-sm);}
+  .ob-card-canvas{min-height:80px;padding:14px 8px;}
+  .ob-card .tname{font-size:13px !important;}
+  .ob-card .btn-icon{width:36px;height:36px;font-size:13px;}
+}
+@media(max-width:420px){
+  .ob-grid{grid-template-columns:1fr 1fr;gap:10px;}
+  .ob-card{padding:14px 10px;}
+}
 
 /* ============================= LOADING / TOASTS / MODALS ============================= */
 #loadingOverlay{
@@ -342,7 +353,27 @@ table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
   tbody tr{position:relative;padding-right:6px;}
   tbody td.td-checkbox{position:absolute;top:10px;right:10px;padding:0;border:none;background:transparent;z-index:1;}
   tbody td.td-checkbox::before{content:none;}
+
+  /* Orders table on mobile: collapse each row into one compact, tappable summary
+     (order id + product + status + total) instead of every field stacked with labels.
+     Tapping it opens the full order detail modal. */
+  #ordersTableBody td[data-label="Order"],
+  #ordersTableBody td[data-label="Customer"],
+  #ordersTableBody td[data-label="Product"],
+  #ordersTableBody td[data-label="Total"],
+  #ordersTableBody td[data-label="Status"],
+  #ordersTableBody td[data-label="Date"]{display:none;}
+  #ordersTableBody .mobile-summary{
+    display:flex !important;flex-direction:column;align-items:stretch !important;
+    gap:5px;padding:13px 14px !important;border-bottom:1px solid var(--border-soft) !important;
+    text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  }
+  #ordersTableBody .mobile-summary::before{content:none;}
+  #ordersTableBody .mobile-summary:active{background:var(--surface-2);}
+  #ordersTableBody .ms-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-right:26px;}
+  #ordersTableBody .ms-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 }
+.mobile-summary{display:none;}
 thead th{text-align:left;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;}
 tbody td{padding:13px 16px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
 tbody tr:last-child td{border-bottom:none;}
@@ -704,6 +735,7 @@ tbody tr:hover{background:var(--surface-2);}
       <div class="toolbar">
         <input class="input" style="min-width:220px;" id="obSearch" placeholder="Search by name, phone, order ID or barcode…">
         <button class="scan-btn" onclick="Scanner.open('obSearch', ()=>OrderBarcode.render())" title="Scan barcode to find an order"><i class="fa-solid fa-barcode"></i></button>
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="OrderBarcode.printAll()"><i class="fa-solid fa-print"></i> Print All</button>
       </div>
       <div id="obGrid" class="ob-grid"></div>
       <div id="obEmpty" class="empty-state hidden"><i class="fa-solid fa-barcode"></i><h4>No orders yet</h4><p>Order barcodes are generated automatically when a customer places an order.</p></div>
@@ -711,16 +743,18 @@ tbody tr:hover{background:var(--surface-2);}
 
     <!-- ORDER BARCODE VIEW MODAL -->
     <div id="orderBarcodeModal" class="modal-backdrop hidden">
-      <div class="modal" style="max-width:300px;">
+      <div class="modal" style="max-width:360px;">
         <div class="modal-head"><h3 id="obModalTitle">Order Barcode</h3><button class="modal-close" onclick="UI.closeModal('orderBarcodeModal')"><i class="fa-solid fa-xmark"></i></button></div>
         <div class="modal-body" style="text-align:center;">
           <p id="obModalSub" class="tsub" style="margin:0 0 12px;"></p>
-          <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px;display:inline-block;">
-            <canvas id="obModalCanvas" style="max-width:220px;"></canvas>
+          <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;display:inline-block;">
+            <canvas id="obModalCanvas" style="max-width:280px;"></canvas>
           </div>
         </div>
-        <div class="modal-foot">
+        <div class="modal-foot" style="flex-wrap:wrap;">
           <button class="btn btn-secondary" onclick="UI.closeModal('orderBarcodeModal')">Close</button>
+          <button class="btn btn-secondary" id="obModalCopyBtn"><i class="fa-solid fa-copy"></i> Copy No.</button>
+          <button class="btn btn-secondary" id="obModalPrintBtn"><i class="fa-solid fa-print"></i> Print</button>
           <button class="btn btn-primary" id="obModalDownloadBtn"><i class="fa-solid fa-download"></i> Download</button>
         </div>
       </div>
@@ -861,6 +895,13 @@ tbody tr:hover{background:var(--surface-2);}
         "status": { ".validate": "auth != null || newData.val() === 'Pending'" }
       }
     },
+    "counters": {
+      "orderSeq": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.isNumber() && newData.val() > 0 && (!data.exists() || newData.val() === data.val() + 1)"
+      }
+    },
     "customers": {
       ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
@@ -871,7 +912,7 @@ tbody tr:hover{background:var(--surface-2);}
     }
   }
 }</pre>
-        <p style="font-size:12px;color:var(--muted);">Notes: (1) the <span class="mono">orders</span> rule lets a visitor create a brand-new order but never modify or delete one that already exists — only an allow-listed admin can update status. (2) <span class="mono">admins</span> is admin-readable and never client-writable, so access can only be granted via the Firebase Console or Admin SDK — a client can never self-promote. (3) Keep product photos reasonably small (the editor auto-compresses uploads) since Realtime Database performs best with compact string values. (4) For extra hardening in production, add Firebase App Check.</p>
+        <p style="font-size:12px;color:var(--muted);">Notes: (1) the <span class="mono">orders</span> rule lets a visitor create a brand-new order but never modify or delete one that already exists — only an allow-listed admin can update status. (2) <span class="mono">admins</span> is admin-readable and never client-writable, so access can only be granted via the Firebase Console or Admin SDK — a client can never self-promote. (3) Keep product photos reasonably small (the editor auto-compresses uploads) since Realtime Database performs best with compact string values. (4) For extra hardening in production, add Firebase App Check. (5) <span class="mono">counters/orderSeq</span> is a single always-increasing number used to generate each order's permanent 8-digit order number (e.g. <span class="mono">00000042</span>) — the rule only accepts a write that is exactly one more than the current value, so it can safely be incremented by anonymous checkout without letting anyone set it to an arbitrary number.</p>
       </div>
     </section>
   </div>
@@ -1067,20 +1108,22 @@ tbody tr:hover{background:var(--surface-2);}
 
 <script>
 /* ================================================================================
-   FIREBASE CONFIG
-   Replace the values below with your own Firebase project config
-   (Project Settings → General → Your apps → SDK setup and configuration).
+   FIREBASE CONFIG — obfuscated so it doesn't sit as plain, copy-pasteable text
+   in "View Source". IMPORTANT: this is NOT a secret and this is NOT real security.
+   Firebase web config (apiKey, projectId, etc.) is meant to be public — it only
+   identifies which Firebase project to talk to. Actual protection comes entirely
+   from your Firebase Realtime Database Security Rules (see the "Firebase Setup"
+   tab in Settings), which are already configured so visitors can only read
+   products/categories and create new orders — nothing else. Anyone determined
+   enough can still recover this value from the browser's Network tab or by
+   running the decode function below in DevTools; that's true of every Firebase
+   web app and can't be prevented client-side. Don't rely on this for security —
+   rely on the Security Rules.
+   To change your project: decode this yourself, edit the JSON, then re-encode
+   with: btoa(JSON.stringify(config)).split('').reverse().join('')
 ================================================================================ */
-const firebaseConfig = {
-  apiKey: "AIzaSyAn3YQZYu77V292lvzhn5imNJ6heAiIyG8",
-  authDomain: "shopnest-cf2fe.firebaseapp.com",
-  databaseURL: "https://shopnest-cf2fe-default-rtdb.firebaseio.com",
-  projectId: "shopnest-cf2fe",
-  storageBucket: "shopnest-cf2fe.firebasestorage.app",
-  messagingSenderId: "1086339279520",
-  appId: "1:1086339279520:web:133dcf6fd111b70c1977c5",
-  measurementId: "G-DDS1CM46XM"
-};
+const _fbBlob = "==Qfi0EW2QTTDFzUERULHJiOiQWS05WZtVmc1NXYl1mIsISNjdzN5EzYwcjYxETMkZmNmNGZzMTM6IWZ3pDMyUTO3ITOzMjN4ATM6EjI6ICZJBHchJCLiAjM1kzNykzMzYDOwEjI6ICZJJXZk5WZTdmbpdWYzNXZtJCLiAHch5SZnFmcvR3clNXYiVmcpZmLlZmMmNWL0NXZuB3boNnI6ICdlt2Y1JUZnFmcvR3ciwiIlZmMmNWL0NXZuB3boNnI6ICZJR3Ylp2byBnIsISbvNmLvlWZzFmYlJXam5iYkRnctQHb1FmZlRWLlZmMmNWL0NXZuB3boN3LvozcwRHdoJiOiwkUVV2chJWY0FGZiwiIt92YuAHchV2chJWZylmZuUmZyY2YtQ3cl5Gcvh2ciojIulWYt9GRoRXdhJCLigzR5lUaBVGa2okTtlWNuhme2xmM5IjV3cTdZpVUZNjbBl3UhpXSBJiOikXZLlGchJye";
+const firebaseConfig = JSON.parse(atob(_fbBlob.split('').reverse().join('')));
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
@@ -1272,9 +1315,14 @@ const UI = {
   escapeHtml(str){
     return String(str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   },
-  copyText(text){
-    navigator.clipboard?.writeText(text).then(()=>UI.toast('Link copied to clipboard','success'))
-      .catch(()=>UI.toast('Could not copy link','error'));
+  // Display order number: sequential 8-digit orderNo (e.g. "00000042") for new orders,
+  // falling back to the old last-6-of-id format for orders placed before this existed.
+  orderNo(id, o){
+    return (o && o.orderNo) ? o.orderNo : id.slice(-6).toUpperCase();
+  },
+  copyText(text, message){
+    navigator.clipboard?.writeText(text).then(()=>UI.toast(message||'Link copied to clipboard','success'))
+      .catch(()=>UI.toast('Could not copy','error'));
   }
 };
 
@@ -1535,8 +1583,8 @@ const BarcodeGen = {
     });
   }
 };
-// Compact sizing used for order barcodes (grid cards, order modal, order-barcode modal).
-const ORDER_BARCODE_OPTS = { fontSize:9, height:28, width:1.2, margin:6 };
+// Larger, clearly scannable/printable sizing used for order barcodes (grid cards, order modal, order-barcode modal).
+const ORDER_BARCODE_OPTS = { fontSize:16, height:70, width:2.4, margin:12 };
 
 
 const Products = {
@@ -1873,6 +1921,7 @@ const Orders = {
         (o.customerName||'').toLowerCase().includes(search) ||
         (o.phone||'').includes(search) ||
         (o.barcode||id||'').toLowerCase().includes(search) ||
+        (o.orderNo||'').toLowerCase().includes(search) ||
         id.slice(-6).toLowerCase().includes(search)
       )) return false;
       return true;
@@ -1882,7 +1931,18 @@ const Orders = {
     tbody.innerHTML = filtered.map(([id,o])=>`
       <tr>
         <td class="td-checkbox" data-label=""><input type="checkbox" class="order-check" data-id="${id}" onchange="Orders.toggleOne('${id}', this.checked)" ${State.selectedOrders.has(id)?'checked':''}></td>
-        <td class="mono tsub" data-label="Order">#${id.slice(-6).toUpperCase()}</td>
+        <td class="mobile-summary" data-label="" onclick="Orders.viewDetail('${id}')">
+          <div class="ms-top">
+            <span class="mono tsub">#${UI.orderNo(id,o)}</span>
+            <span class="badge ${Orders.badgeClass(o.status)}">${o.status}</span>
+          </div>
+          <div class="tname">${UI.escapeHtml(o.productName||'')}${o.variant?` <span class="tsub">(${UI.escapeHtml(o.variant)})</span>`:''}</div>
+          <div class="ms-bottom">
+            <span class="tsub">${UI.escapeHtml(o.customerName)}</span>
+            <span class="mono">${UI.money(o.total)}</span>
+          </div>
+        </td>
+        <td class="mono tsub" data-label="Order">#${UI.orderNo(id,o)}</td>
         <td data-label="Customer"><div class="tname">${UI.escapeHtml(o.customerName)}</div><div class="tsub">${UI.escapeHtml(o.phone)}</div></td>
         <td data-label="Product">${UI.escapeHtml(o.productName||'')}${o.variant?`<div class="tsub">${UI.escapeHtml(o.variant)}</div>`:''}</td>
         <td class="mono" data-label="Total">${UI.money(o.total)}${o.paymentMethod?`<div class="tsub"><span class="badge ${o.paymentMethod==='bKash'?'badge-blue':'badge-gray'}" style="font-size:10px;">${o.paymentMethod}</span></div>`:''}</td>
@@ -1985,14 +2045,25 @@ const Orders = {
       .then(()=>UI.toast(`Order marked as ${status}`,'success'))
       .catch(err=>UI.toast('Update failed: '+err.message,'error'));
   },
+  changeStatus(id, status){
+    db.ref('orders/'+id+'/status').set(status)
+      .then(()=>{ UI.toast(`Order marked as ${status}`,'success'); Orders.viewDetail(id); })
+      .catch(err=>UI.toast('Update failed: '+err.message,'error'));
+  },
   viewDetail(id){
     const o = State.orders[id];
     if(!o) return;
-    document.getElementById('orderModalTitle').textContent = `Order #${id.slice(-6).toUpperCase()}`;
+    document.getElementById('orderModalTitle').textContent = `Order #${UI.orderNo(id,o)}`;
     const steps = ORDER_TRACK_STATUSES;
     const currentIdx = steps.indexOf(o.status);
     const isAltStatus = ORDER_ALT_STATUSES.includes(o.status);
     document.getElementById('orderModalBody').innerHTML = `
+      <div class="od-quickrow" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="OrderBarcode.copyOrderNo('${id}')"><i class="fa-solid fa-copy"></i> Copy #${UI.orderNo(id,o)}</button>
+        <select class="status-select" style="max-width:170px;" onchange="Orders.changeStatus('${id}', this.value)">
+          ${ORDER_STATUSES.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
       ${isAltStatus ? `<div class="badge ${Orders.badgeClass(o.status)}" style="margin-bottom:14px;">Order ${o.status}</div>` : `
       <div class="status-track">
         ${steps.map((s,i)=>`<div class="st-step ${i<currentIdx?'done':''} ${i===currentIdx?'current':''}">
@@ -2011,8 +2082,11 @@ const Orders = {
       ${o.note ? `<div class="od-block" style="margin-top:14px;"><h5>Note</h5><p style="font-weight:400;">${UI.escapeHtml(o.note)}</p></div>` : ''}
       <div class="od-block" style="margin-top:14px;text-align:center;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px;">
         <h5 style="text-align:left;">Order Barcode</h5>
-        <canvas id="orderModalBarcode" style="max-width:200px;"></canvas>
-        <div style="margin-top:8px;"><button type="button" class="btn btn-secondary btn-sm" onclick="OrderBarcode.download('${id}')"><i class="fa-solid fa-download"></i> Download Barcode</button></div>
+        <canvas id="orderModalBarcode" style="max-width:280px;"></canvas>
+        <div class="row-actions" style="justify-content:center;margin-top:8px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="OrderBarcode.printOne('${id}')"><i class="fa-solid fa-print"></i> Print</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="OrderBarcode.download('${id}')"><i class="fa-solid fa-download"></i> Download Barcode</button>
+        </div>
       </div>
     `;
     setTimeout(()=>{ const c = document.getElementById('orderModalBarcode'); if(c) BarcodeGen.renderToCanvas(c, o.barcode || id, ORDER_BARCODE_OPTS); }, 0);
@@ -2026,7 +2100,7 @@ const Orders = {
     const s = State.settings;
     const win = window.open('', '_blank');
     win.document.write(`
-      <html><head><title>Invoice #${id.slice(-6).toUpperCase()}</title>
+      <html><head><title>Invoice #${UI.orderNo(id,o)}</title>
       <meta charset="utf-8">
       <style>
         body{font-family:Arial,sans-serif;color:#0F1B33;padding:36px;max-width:640px;margin:0 auto;}
@@ -2039,7 +2113,7 @@ const Orders = {
       </style></head><body>
         <div class="header">
           <div><h1>${UI.escapeHtml(s.storeName||'Invoice')}</h1><div class="muted">${UI.escapeHtml(s.address||'')}</div><div class="muted">${UI.escapeHtml(s.storePhone||'')}</div></div>
-          <div style="text-align:right;"><div class="muted">Invoice</div><div style="font-weight:700;">#${id.slice(-6).toUpperCase()}</div><div class="muted">${o.createdAt?new Date(o.createdAt).toLocaleString():''}</div></div>
+          <div style="text-align:right;"><div class="muted">Invoice</div><div style="font-weight:700;">#${UI.orderNo(id,o)}</div><div class="muted">${o.createdAt?new Date(o.createdAt).toLocaleString():''}</div></div>
         </div>
         <table>
           <tr><td class="label">Customer</td><td>${UI.escapeHtml(o.customerName)} — ${UI.escapeHtml(o.phone)}</td></tr>
@@ -2078,34 +2152,40 @@ document.querySelectorAll('#orderStatusTabs .chip-tab').forEach(tab=>{
 ================================================================================ */
 const OrderBarcode = {
   renderIfActive(){ if(document.getElementById('view-orderbarcode')?.classList.contains('active')) OrderBarcode.render(); },
-  render(){
-    const grid = document.getElementById('obGrid');
-    if(!grid) return;
+  filteredEntries(){
     const search = (document.getElementById('obSearch')?.value||'').toLowerCase();
-    const entries = Object.entries(State.orders)
+    return Object.entries(State.orders)
       .filter(([id,o])=>{
         if(!search) return true;
         return (o.customerName||'').toLowerCase().includes(search) ||
           (o.phone||'').includes(search) ||
           (o.barcode||id||'').toLowerCase().includes(search) ||
+          (o.orderNo||'').toLowerCase().includes(search) ||
           id.slice(-6).toLowerCase().includes(search);
       })
       .sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+  },
+  render(){
+    const grid = document.getElementById('obGrid');
+    if(!grid) return;
+    const entries = OrderBarcode.filteredEntries();
 
     document.getElementById('obEmpty').classList.toggle('hidden', Object.keys(State.orders).length>0);
     grid.innerHTML = entries.map(([id,o])=>`
       <div class="card ob-card">
         <div class="ob-card-top">
-          <span class="mono tsub">#${id.slice(-6).toUpperCase()}</span>
+          <span class="mono tsub">#${UI.orderNo(id,o)}</span>
           <span class="badge ${Orders.badgeClass(o.status)}" style="font-size:10px;padding:2px 7px;">${o.status}</span>
         </div>
         <div class="ob-card-canvas">
           <canvas id="obCanvas_${id}"></canvas>
         </div>
-        <div class="tname" style="margin-top:6px;font-size:12.5px;">${UI.escapeHtml(o.customerName||'')}</div>
-        <div class="tsub" style="font-size:11px;">${UI.escapeHtml(o.productName||'')}</div>
-        <div class="row-actions" style="justify-content:center;margin-top:8px;">
+        <div class="tname" style="margin-top:8px;">${UI.escapeHtml(o.customerName||'')}</div>
+        <div class="tsub" style="font-size:11.5px;">${UI.escapeHtml(o.productName||'')}</div>
+        <div class="row-actions" style="justify-content:center;margin-top:10px;">
           <button class="btn btn-icon btn-secondary btn-sm" title="View order" onclick="Orders.viewDetail('${id}')"><i class="fa-solid fa-eye"></i></button>
+          <button class="btn btn-icon btn-secondary btn-sm" title="Copy order number" onclick="OrderBarcode.copyOrderNo('${id}')"><i class="fa-solid fa-copy"></i></button>
+          <button class="btn btn-icon btn-secondary btn-sm" title="Print barcode" onclick="OrderBarcode.printOne('${id}')"><i class="fa-solid fa-print"></i></button>
           <button class="btn btn-icon btn-secondary btn-sm" title="Download barcode" onclick="OrderBarcode.download('${id}')"><i class="fa-solid fa-download"></i></button>
         </div>
       </div>
@@ -2118,9 +2198,11 @@ const OrderBarcode = {
   view(id){
     const o = State.orders[id];
     if(!o) return;
-    document.getElementById('obModalTitle').textContent = `Order #${id.slice(-6).toUpperCase()}`;
+    document.getElementById('obModalTitle').textContent = `Order #${UI.orderNo(id,o)}`;
     document.getElementById('obModalSub').textContent = `${o.customerName||''} · ${o.productName||''}`;
     document.getElementById('obModalDownloadBtn').setAttribute('onclick', `OrderBarcode.download('${id}')`);
+    document.getElementById('obModalCopyBtn').setAttribute('onclick', `OrderBarcode.copyOrderNo('${id}')`);
+    document.getElementById('obModalPrintBtn').setAttribute('onclick', `OrderBarcode.printOne('${id}')`);
     UI.openModal('orderBarcodeModal');
     setTimeout(()=>{
       const c = document.getElementById('obModalCanvas');
@@ -2130,7 +2212,64 @@ const OrderBarcode = {
   download(id){
     const o = State.orders[id];
     if(!o) return;
-    BarcodeGen.download(o.barcode || id, 'order-'+id.slice(-6).toLowerCase(), ORDER_BARCODE_OPTS);
+    BarcodeGen.download(o.barcode || id, 'order-'+UI.orderNo(id,o).toLowerCase(), ORDER_BARCODE_OPTS);
+  },
+  copyOrderNo(id){
+    const o = State.orders[id];
+    if(!o) return;
+    UI.copyText(UI.orderNo(id,o), 'Order number copied');
+  },
+  // Renders one order's barcode to an offscreen canvas and returns a printable label descriptor.
+  makeLabel(id, o){
+    const canvas = document.createElement('canvas');
+    const ok = BarcodeGen.renderToCanvas(canvas, o.barcode || id, ORDER_BARCODE_OPTS);
+    if(!ok) return null;
+    return { orderNo: UI.orderNo(id,o), customerName: o.customerName||'', productName: o.productName||'', dataUrl: canvas.toDataURL('image/png') };
+  },
+  printOne(id){
+    const o = State.orders[id];
+    if(!o) return;
+    const label = OrderBarcode.makeLabel(id, o);
+    if(!label){ UI.toast('Could not generate a barcode image to print','error'); return; }
+    OrderBarcode.openPrintWindow([label]);
+  },
+  printAll(){
+    const entries = OrderBarcode.filteredEntries();
+    if(!entries.length){ UI.toast('No orders to print','error'); return; }
+    const labels = entries.map(([id,o])=>OrderBarcode.makeLabel(id,o)).filter(Boolean);
+    if(!labels.length){ UI.toast('Could not generate barcode images to print','error'); return; }
+    OrderBarcode.openPrintWindow(labels);
+  },
+  openPrintWindow(labels){
+    const win = window.open('', '_blank');
+    if(!win){ UI.toast('Please allow pop-ups to print barcodes','error'); return; }
+    win.document.write(`
+      <html><head><title>Order Barcodes</title>
+      <meta charset="utf-8">
+      <style>
+        body{font-family:Arial,sans-serif;color:#0F1B33;padding:22px;margin:0;}
+        h1{font-size:16px;margin:0 0 16px;}
+        .labels{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+        .label{border:1px solid #ccc;border-radius:10px;padding:14px;text-align:center;break-inside:avoid;page-break-inside:avoid;}
+        .label img{max-width:100%;}
+        .label .name{font-size:12px;color:#334063;margin-top:8px;font-weight:700;}
+        .label .prod{font-size:11px;color:#66738F;}
+        @media print{ body{padding:8px;} h1{display:none;} }
+      </style></head><body>
+        <h1>Order Barcodes — ${labels.length} label${labels.length!==1?'s':''}</h1>
+        <div class="labels">
+          ${labels.map(l=>`
+            <div class="label">
+              <img src="${l.dataUrl}" alt="Barcode #${l.orderNo}">
+              <div class="name">${UI.escapeHtml(l.customerName)}</div>
+              <div class="prod">${UI.escapeHtml(l.productName)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </body></html>
+    `);
+    win.document.close();
+    setTimeout(()=>win.print(), 400);
   }
 };
 document.getElementById('obSearch')?.addEventListener('input', OrderBarcode.render);
@@ -2181,7 +2320,7 @@ const Customers = {
           <tbody>
             ${orders.map(([id,o])=>`
               <tr style="cursor:pointer;" onclick="Orders.viewDetail('${id}')">
-                <td class="mono tsub" data-label="Order">#${id.slice(-6).toUpperCase()}</td>
+                <td class="mono tsub" data-label="Order">#${UI.orderNo(id,o)}</td>
                 <td data-label="Product">${UI.escapeHtml(o.productName||'')}</td>
                 <td class="mono" data-label="Total">${UI.money(o.total)}</td>
                 <td data-label="Status"><span class="badge ${Orders.badgeClass(o.status)}">${o.status}</span></td>
@@ -2685,6 +2824,24 @@ const Storefront = {
 
     const orderRef = db.ref('orders').push();
     const orderId = orderRef.key;
+
+    const btn = document.getElementById('of_submitBtn');
+    btn.disabled = true;
+    UI.loading(true,'Placing your order…');
+
+    // Sequential, never-reset 8-digit order number (e.g. "00000042"), generated via an
+    // atomic counter so concurrent orders never collide. This is also used as the barcode value.
+    let orderNo;
+    try{
+      const seqResult = await db.ref('counters/orderSeq').transaction(cur => (cur||0) + 1);
+      orderNo = String(seqResult.snapshot.val()).padStart(8,'0');
+    } catch(err){
+      UI.loading(false);
+      btn.disabled = false;
+      UI.toast('Could not generate order number: '+err.message,'error');
+      return;
+    }
+
     const order = {
       customerName:name, phone, district, thana, address,
       note: document.getElementById('of_note').value.trim(),
@@ -2693,12 +2850,9 @@ const Storefront = {
       unitPrice: unit, shipping, total,
       paymentMethod: ppState.paymentMethod, bkashNumber, bkashTrxId,
       status:'Pending', createdAt: Date.now(),
-      barcode: orderId
+      orderNo, barcode: orderNo
     };
 
-    const btn = document.getElementById('of_submitBtn');
-    btn.disabled = true;
-    UI.loading(true,'Placing your order…');
     try{
       await orderRef.set(order);
       const newStock = Math.max(0, Number(p.stock) - ppState.qty);
