@@ -12,6 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.6/JsBarcode.all.min.js"></script>
 
 <style>
 /* ============================= TOKENS ============================= */
@@ -49,15 +51,48 @@
   --font-body:'Inter',sans-serif;
   --font-mono:'JetBrains Mono',monospace;
 }
+/* Dark mode — toggled via [data-theme="dark"] on <html> */
+html[data-theme="dark"]{
+  --blue-300:#5C8DEA;
+  --blue-100:#1B2C4C;
+  --blue-50:#16213A;
+  --bg:#0B1220;
+  --surface:#121B2E;
+  --surface-2:#182236;
+  --ink:#EAF0FB;
+  --ink-soft:#C4D0E8;
+  --muted:#8695B7;
+  --border:#233250;
+  --border-soft:#1B2740;
+  --success-bg:#0E2E22;
+  --warning-bg:#332208;
+  --danger-bg:#3A1616;
+  --info-bg:#16213A;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+  --shadow:0 2px 4px rgba(0,0,0,.25), 0 12px 28px -8px rgba(0,0,0,.45);
+  --shadow-lg:0 20px 44px -12px rgba(0,0,0,.6);
+}
+html[data-theme="dark"] .login-error,
+html[data-theme="dark"] .preview-card .pimg{background:#1B2740;}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#2B3B5C;}
+html[data-theme="dark"] #loadingOverlay{background:rgba(11,18,32,.85);}
+html[data-theme="dark"] .thumb,
+html[data-theme="dark"] .pp-gallery-main,
+html[data-theme="dark"] .pv_img{background:#1B2740;}
+html[data-theme="dark"] .badge-gray{background:#233250;color:#B8C4E0;}
+html[data-theme="dark"] .badge-teal{background:#0E2E2A;color:#3ED9C4;}
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0;width:100%;overflow-x:hidden;}
 body{
   font-family:var(--font-body);
   background:var(--bg);
   color:var(--ink);
   -webkit-font-smoothing:antialiased;
   min-height:100vh;
+  position:relative;
 }
+*{min-width:0;}
+img,svg,canvas{max-width:100%;}
 h1,h2,h3,h4,.font-display{font-family:var(--font-display);color:var(--ink);}
 .mono{font-family:var(--font-mono);}
 a{color:inherit;text-decoration:none;}
@@ -98,6 +133,7 @@ input,select,textarea{font-family:inherit;}
 .badge-amber{background:var(--warning-bg);color:var(--warning);}
 .badge-red{background:var(--danger-bg);color:var(--danger);}
 .badge-gray{background:#EEF1F7;color:var(--muted);}
+.badge-teal{background:#E1F5F3;color:#0F7A6E;}
 
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
@@ -140,14 +176,19 @@ input,select,textarea{font-family:inherit;}
 
 .modal-backdrop{position:fixed;inset:0;background:rgba(15,27,51,.5);z-index:8000;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .15s ease;}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-.modal{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);animation:modalIn .2s cubic-bezier(.2,.9,.3,1.2);}
+.modal{
+  background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:560px;
+  max-height:90vh;max-height:90dvh;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:var(--shadow-lg);animation:modalIn .2s cubic-bezier(.2,.9,.3,1.2);
+}
 @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
 .modal.wide{max-width:920px;}
-.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border-soft);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border-soft);flex-shrink:0;}
 .modal-head h3{margin:0;font-size:17px;}
-.modal-body{padding:20px 22px;overflow-y:auto;}
-.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-soft);}
-.modal-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--surface-2);color:var(--muted);display:flex;align-items:center;justify-content:center;}
+.modal-body{padding:20px 22px;overflow-y:auto;flex:1 1 auto;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-soft);flex-shrink:0;}
+.modal-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--surface-2);color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .modal-close:hover{background:var(--danger-bg);color:var(--danger);}
 
 /* Bottom sheet style popups on mobile: every modal slides up from the bottom edge */
@@ -156,7 +197,7 @@ input,select,textarea{font-family:inherit;}
   .modal{
     max-width:100% !important;width:100%;
     border-radius:22px 22px 0 0;
-    max-height:94vh;
+    max-height:92vh;max-height:92dvh;
     animation:sheetUp .32s cubic-bezier(.22,.9,.32,1);
   }
   .modal::before{
@@ -165,7 +206,9 @@ input,select,textarea{font-family:inherit;}
     margin:10px auto 2px;
   }
   .modal-head{padding-top:8px;}
-  .editor-form-col{max-height:none;}
+  .editor-form-col{max-height:none;overflow-y:visible;}
+  .editor-split{display:block;}
+  .editor-preview-col{border-top:1px solid var(--border-soft);}
 }
 @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 @media (prefers-reduced-motion: reduce){
@@ -254,8 +297,43 @@ input,select,textarea{font-family:inherit;}
 .delta.up{color:var(--success);} .delta.down{color:var(--danger);}
 
 /* tables */
-.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);}
+.table-wrap{overflow-x:auto;max-width:100%;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;}
 table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
+/* Mobile: tables become stacked cards instead of a horizontally-scrolling grid */
+@media(max-width:680px){
+  .table-wrap{overflow-x:visible;border:none;background:transparent;border-radius:0;}
+  table{min-width:0;width:100%;display:block;}
+  thead{display:none;}
+  tbody{display:block;}
+  tbody tr{
+    display:block;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);margin-bottom:12px;box-shadow:var(--shadow-sm);
+    padding:4px 0;
+  }
+  tbody tr:hover{background:var(--surface);}
+  tbody td{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:10px 14px;border-bottom:1px dashed var(--border-soft);text-align:right;white-space:normal;
+  }
+  tbody td:last-child{border-bottom:none;}
+  tbody td::before{
+    content:attr(data-label);font-size:10.5px;font-weight:700;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.3px;text-align:left;flex-shrink:0;
+  }
+  tbody td:first-child{
+    padding-bottom:12px;border-bottom:1px solid var(--border-soft);
+    justify-content:flex-start;text-align:left;
+  }
+  tbody td:first-child::before{content:none;}
+  tbody td:has(.row-actions)::before{content:none;}
+  tbody td:has(.row-actions){justify-content:flex-end;}
+  .row-actions{flex-wrap:wrap;justify-content:flex-end;}
+  .url-cell{max-width:170px;}
+  .status-select{max-width:150px;}
+  tbody tr{position:relative;padding-right:6px;}
+  tbody td.td-checkbox{position:absolute;top:10px;right:10px;padding:0;border:none;background:transparent;z-index:1;}
+  tbody td.td-checkbox::before{content:none;}
+}
 thead th{text-align:left;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;}
 tbody td{padding:13px 16px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
 tbody tr:last-child td{border-bottom:none;}
@@ -374,6 +452,18 @@ tbody tr:hover{background:var(--surface-2);}
 .pp-trust i{color:var(--blue-600);}
 .pp-notfound{text-align:center;padding:100px 20px;}
 
+/* Barcode scanner */
+.scanner-viewport{position:relative;width:100%;aspect-ratio:1/1;background:#0B1220;overflow:hidden;}
+.scanner-viewport video{width:100%;height:100%;object-fit:cover;display:block;}
+.scanner-frame{position:absolute;inset:14% 12%;border:3px solid rgba(255,255,255,.85);border-radius:16px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none;}
+.scanner-frame::before,.scanner-frame::after{content:'';position:absolute;width:26px;height:26px;border:3px solid var(--blue-300);}
+.scanner-frame::before{top:-3px;left:-3px;border-right:none;border-bottom:none;border-radius:10px 0 0 0;}
+.scanner-frame::after{bottom:-3px;right:-3px;border-left:none;border-top:none;border-radius:0 0 10px 0;}
+.scanner-line{position:absolute;left:14%;right:14%;height:2px;background:linear-gradient(90deg,transparent,var(--blue-300),transparent);top:14%;animation:scanline 1.8s ease-in-out infinite;pointer-events:none;}
+@keyframes scanline{0%{top:16%;}50%{top:82%;}100%{top:16%;}}
+.scan-btn{background:var(--surface-2);border:1.5px solid var(--border);color:var(--blue-600);width:44px;height:44px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.scan-btn:hover{background:var(--blue-50);border-color:var(--blue-500);}
+
 /* Sticky mobile buy bar */
 .pp-sticky-bar{display:none;position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px;box-shadow:0 -8px 24px rgba(16,36,90,.1);z-index:150;align-items:center;gap:10px;}
 @media(max-width:800px){.pp-sticky-bar{display:flex;} .pp-actions{display:none;}}
@@ -440,12 +530,13 @@ tbody tr:hover{background:var(--surface-2);}
         <label>Email address</label>
         <input class="input" type="email" id="loginEmail" placeholder="admin@yourstore.com" required autocomplete="username">
       </div>
-      <div class="field">
+      <div class="field" style="margin-bottom:16px;">
         <label>Password</label>
         <div class="pw-wrap">
           <input class="input" type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
           <button type="button" class="pw-toggle" onclick="UI.togglePw()"><i class="fa-regular fa-eye" id="pwIcon"></i></button>
         </div>
+        <div style="text-align:right;margin-top:7px;"><a href="#" style="font-size:11.5px;color:var(--blue-600);font-weight:600;" onclick="Auth.forgotPassword(event)">Forgot password?</a></div>
       </div>
       <button type="submit" class="btn btn-primary btn-block" id="loginBtn" style="padding:11px;">
         <i class="fa-solid fa-right-to-bracket"></i> Sign in
@@ -467,6 +558,7 @@ tbody tr:hover{background:var(--surface-2);}
       <div class="nav-item active" data-view="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</div>
       <div class="nav-item" data-view="products"><i class="fa-solid fa-box-open"></i> Products <span class="count" id="navProductCount">0</span></div>
       <div class="nav-item" data-view="orders"><i class="fa-solid fa-receipt"></i> Orders <span class="count" id="navOrderCount">0</span></div>
+      <div class="nav-item" data-view="orderbarcode"><i class="fa-solid fa-barcode"></i> Order Barcode</div>
       <div class="nav-item" data-view="customers"><i class="fa-solid fa-users"></i> Customers</div>
       <div class="nav-item" data-view="categories"><i class="fa-solid fa-tags"></i> Categories</div>
       <div class="nav-item" data-view="analytics"><i class="fa-solid fa-chart-line"></i> Analytics</div>
@@ -489,6 +581,7 @@ tbody tr:hover{background:var(--surface-2);}
         <input type="text" id="globalSearch" placeholder="Search products, orders, customers…">
       </div>
       <div class="topbar-right">
+        <button class="btn btn-icon btn-secondary" id="themeToggleBtn" onclick="UI.toggleTheme()" title="Toggle dark mode"><i class="fa-solid fa-moon"></i></button>
         <button class="btn btn-icon btn-secondary" onclick="Router.go('settings')" title="Settings"><i class="fa-solid fa-gear"></i></button>
       </div>
     </div>
@@ -497,6 +590,11 @@ tbody tr:hover{background:var(--surface-2);}
     <section class="view active" id="view-dashboard">
       <div class="view-head">
         <div><h1 class="page-title">Dashboard</h1><p class="page-sub">Live overview of your store's performance.</p></div>
+      </div>
+      <div id="lowStockBanner" class="hidden" style="display:flex;align-items:center;gap:12px;background:var(--warning-bg);border:1px solid #F3D9A6;color:var(--warning);border-radius:12px;padding:12px 16px;margin-bottom:18px;font-size:13px;font-weight:600;cursor:pointer;" onclick="Dashboard.goLowStock()">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:16px;"></i>
+        <span id="lowStockText">Some products are running low on stock.</span>
+        <i class="fa-solid fa-arrow-right" style="margin-left:auto;"></i>
       </div>
       <div class="stat-grid">
         <div class="card stat-card"><div class="ic badge-blue"><i class="fa-solid fa-sack-dollar"></i></div><div class="val mono" id="statRevenue">৳0</div><div class="lbl">Total Revenue</div></div>
@@ -523,7 +621,8 @@ tbody tr:hover{background:var(--surface-2);}
         <button class="btn btn-primary" onclick="Products.openEditor()"><i class="fa-solid fa-plus"></i> Add Product</button>
       </div>
       <div class="toolbar">
-        <input class="input" style="min-width:200px;" id="productSearch" placeholder="Search products…">
+        <input class="input" style="min-width:200px;" id="productSearch" placeholder="Search products or barcode…">
+        <button class="scan-btn" onclick="Scanner.open('productSearch', ()=>Products.render())" title="Scan barcode to search"><i class="fa-solid fa-barcode"></i></button>
         <select class="select" id="productCategoryFilter"><option value="">All categories</option></select>
         <div class="chip-tabs" id="productStatusTabs">
           <div class="chip-tab active" data-f="all">All</div>
@@ -546,9 +645,11 @@ tbody tr:hover{background:var(--surface-2);}
     <section class="view" id="view-orders">
       <div class="view-head">
         <div><h1 class="page-title">Orders</h1><p class="page-sub">Track and update customer orders.</p></div>
+        <button class="btn btn-secondary" onclick="Orders.exportCsv()"><i class="fa-solid fa-file-arrow-down"></i> Export CSV</button>
       </div>
       <div class="toolbar">
-        <input class="input" style="min-width:200px;" id="orderSearch" placeholder="Search by name or phone…">
+        <input class="input" style="min-width:200px;" id="orderSearch" placeholder="Search by name, phone, order ID or barcode…">
+        <button class="scan-btn" onclick="Scanner.open('orderSearch', ()=>Orders.render())" title="Scan order barcode to search"><i class="fa-solid fa-barcode"></i></button>
         <div class="chip-tabs" id="orderStatusTabs">
           <div class="chip-tab active" data-f="All">All</div>
           <div class="chip-tab" data-f="Pending">Pending</div>
@@ -556,24 +657,75 @@ tbody tr:hover{background:var(--surface-2);}
           <div class="chip-tab" data-f="Processing">Processing</div>
           <div class="chip-tab" data-f="Shipped">Shipped</div>
           <div class="chip-tab" data-f="Delivered">Delivered</div>
+          <div class="chip-tab" data-f="Completed">Completed</div>
+          <div class="chip-tab" data-f="Returned">Returned</div>
           <div class="chip-tab" data-f="Cancelled">Cancelled</div>
         </div>
       </div>
+      <div id="orderBulkBar" class="hidden" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--info-bg);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;font-weight:700;color:var(--blue-700);">
+        <span id="orderBulkCount">0 selected</span>
+        <select class="select" id="orderBulkStatus" style="width:auto;padding:7px 10px;font-size:12px;">
+          <option value="">Set status to…</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Processing">Processing</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Completed">Completed</option>
+          <option value="Returned">Returned</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-sm btn-secondary" onclick="Orders.bulkApplyStatus()"><i class="fa-solid fa-check"></i> Apply</button>
+        <button class="btn btn-sm btn-danger" onclick="Orders.bulkDelete()"><i class="fa-solid fa-trash"></i> Delete Selected</button>
+        <button class="btn btn-sm btn-ghost" style="margin-left:auto;" onclick="Orders.clearSelection()">Clear</button>
+      </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Order</th><th>Customer</th><th>Product</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
+          <thead><tr><th style="width:34px;"><input type="checkbox" id="orderSelectAll" onchange="Orders.toggleSelectAll(this.checked)"></th><th>Order</th><th>Customer</th><th>Product</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
           <tbody id="ordersTableBody"></tbody>
         </table>
       </div>
       <div id="ordersEmpty" class="empty-state hidden"><i class="fa-solid fa-receipt"></i><h4>No orders yet</h4><p>Orders placed by customers will show up here.</p></div>
     </section>
 
+    <!-- ORDER BARCODE -->
+    <section class="view" id="view-orderbarcode">
+      <div class="view-head">
+        <div><h1 class="page-title">Order Barcode</h1><p class="page-sub">Every order gets its own barcode automatically. Scan or search to find, print, or download one.</p></div>
+      </div>
+      <div class="toolbar">
+        <input class="input" style="min-width:220px;" id="obSearch" placeholder="Search by name, phone, order ID or barcode…">
+        <button class="scan-btn" onclick="Scanner.open('obSearch', ()=>OrderBarcode.render())" title="Scan barcode to find an order"><i class="fa-solid fa-barcode"></i></button>
+      </div>
+      <div id="obGrid" class="grid-3"></div>
+      <div id="obEmpty" class="empty-state hidden"><i class="fa-solid fa-barcode"></i><h4>No orders yet</h4><p>Order barcodes are generated automatically when a customer places an order.</p></div>
+    </section>
+
+    <!-- ORDER BARCODE VIEW MODAL -->
+    <div id="orderBarcodeModal" class="modal-backdrop hidden">
+      <div class="modal" style="max-width:380px;">
+        <div class="modal-head"><h3 id="obModalTitle">Order Barcode</h3><button class="modal-close" onclick="UI.closeModal('orderBarcodeModal')"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal-body" style="text-align:center;">
+          <p id="obModalSub" class="tsub" style="margin:0 0 12px;"></p>
+          <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;">
+            <canvas id="obModalCanvas" style="max-width:100%;"></canvas>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary" onclick="UI.closeModal('orderBarcodeModal')">Close</button>
+          <button class="btn btn-primary" id="obModalDownloadBtn"><i class="fa-solid fa-download"></i> Download</button>
+        </div>
+      </div>
+    </div>
+
     <!-- CUSTOMERS -->
     <section class="view" id="view-customers">
       <div class="view-head">
         <div><h1 class="page-title">Customers</h1><p class="page-sub">Everyone who has placed an order with you.</p></div>
       </div>
-      <div class="toolbar"><input class="input" style="min-width:220px;" id="customerSearch" placeholder="Search customers…"></div>
+      <div class="toolbar">
+        <input class="input" style="min-width:220px;" id="customerSearch" placeholder="Search by name or phone…">
+        <button class="scan-btn" onclick="Scanner.open('customerSearch', ()=>Customers.deriveAndRender())" title="Scan phone/loyalty barcode to search"><i class="fa-solid fa-barcode"></i></button>
+      </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Customer</th><th>Phone</th><th>District</th><th>Orders</th><th>Total Spent</th></tr></thead>
@@ -596,13 +748,24 @@ tbody tr:hover{background:var(--surface-2);}
     <!-- ANALYTICS -->
     <section class="view" id="view-analytics">
       <div class="view-head">
-        <div><h1 class="page-title">Analytics</h1><p class="page-sub">Understand how your store is performing.</p></div>
+        <div><h1 class="page-title">Analytics</h1><p class="page-sub">Understand how your store is performing. Click any chart to drill in.</p></div>
+      </div>
+      <div class="chip-tabs" id="analyticsRangeTabs" style="margin-bottom:16px;">
+        <div class="chip-tab" data-r="7">Last 7 Days</div>
+        <div class="chip-tab active" data-r="30">Last 30 Days</div>
+        <div class="chip-tab" data-r="90">Last 90 Days</div>
+        <div class="chip-tab" data-r="all">All Time</div>
+      </div>
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="card stat-card"><div class="ic badge-blue"><i class="fa-solid fa-sack-dollar"></i></div><div class="val mono" id="anStatRevenue">৳0</div><div class="lbl">Revenue in range</div></div>
+        <div class="card stat-card"><div class="ic badge-green"><i class="fa-solid fa-receipt"></i></div><div class="val" id="anStatOrders">0</div><div class="lbl">Orders in range</div></div>
+        <div class="card stat-card"><div class="ic badge-amber"><i class="fa-solid fa-chart-simple"></i></div><div class="val mono" id="anStatAvg">৳0</div><div class="lbl">Avg. order value</div></div>
       </div>
       <div class="grid-2">
-        <div class="card chart-card"><h4><i class="fa-solid fa-chart-column"></i> Orders by Status</h4><div class="chart-wrap"><canvas id="chartStatus"></canvas></div></div>
-        <div class="card chart-card"><h4><i class="fa-solid fa-chart-pie"></i> Revenue by Category</h4><div class="chart-wrap"><canvas id="chartCategory"></canvas></div></div>
+        <div class="card chart-card"><h4><i class="fa-solid fa-chart-column"></i> Orders by Status <span style="font-size:11px;font-weight:500;color:var(--muted);">— click a bar to view those orders</span></h4><div class="chart-wrap"><canvas id="chartStatus"></canvas></div></div>
+        <div class="card chart-card"><h4><i class="fa-solid fa-chart-pie"></i> Revenue by Category <span style="font-size:11px;font-weight:500;color:var(--muted);">— click a slice to view those products</span></h4><div class="chart-wrap"><canvas id="chartCategory"></canvas></div></div>
       </div>
-      <div class="card chart-card" style="margin-top:16px;"><h4><i class="fa-solid fa-chart-line"></i> Orders — Last 14 Days</h4><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>
+      <div class="card chart-card" style="margin-top:16px;"><h4 id="chartTrendTitle"><i class="fa-solid fa-chart-line"></i> Orders Trend</h4><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>
     </section>
 
     <!-- SETTINGS -->
@@ -613,6 +776,7 @@ tbody tr:hover{background:var(--surface-2);}
       <div class="settings-nav">
         <div class="chip-tab active" data-s="store">Store Info</div>
         <div class="chip-tab" data-s="shipping">Shipping</div>
+        <div class="chip-tab" data-s="payment">Payment</div>
         <div class="chip-tab" data-s="social">Social &amp; Sharing</div>
         <div class="chip-tab" data-s="security">Security Rules</div>
       </div>
@@ -629,12 +793,19 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
 
       <div id="settings-shipping" class="card hidden" style="padding:22px;">
-        <div class="field"><label>Delivery Districts (comma-separated)</label><textarea class="textarea" id="setDistricts" placeholder="Dhaka, Chattogram, Sylhet, Khulna…"></textarea></div>
         <div class="grid-2">
           <div class="field"><label>Inside Dhaka Charge</label><input class="input" type="number" id="setShipInside" placeholder="60"></div>
           <div class="field"><label>Outside Dhaka Charge</label><input class="input" type="number" id="setShipOutside" placeholder="120"></div>
         </div>
+        <p class="hint" style="margin-top:-6px;">Applied automatically based on the district the customer selects at checkout.</p>
         <button class="btn btn-primary" onclick="Settings.save('shipping')"><i class="fa-solid fa-check"></i> Save Shipping</button>
+      </div>
+
+      <div id="settings-payment" class="card hidden" style="padding:22px;">
+        <div class="field"><label>bKash Merchant / Personal Number</label><input class="input" id="setBkashNumber" placeholder="01XXXXXXXXX"></div>
+        <div class="field"><label>Payment Instruction (shown to customers)</label><textarea class="textarea" id="setBkashInstruction" placeholder="Send the total amount to our bKash number (Send Money), then enter the details below." style="min-height:70px;"></textarea></div>
+        <p class="hint" style="margin-top:-6px;">Customers can choose Cash on Delivery or bKash at checkout. For bKash, they'll enter their number and Transaction ID for you to verify.</p>
+        <button class="btn btn-primary" onclick="Settings.save('payment')"><i class="fa-solid fa-check"></i> Save Payment Settings</button>
       </div>
 
       <div id="settings-social" class="card hidden" style="padding:22px;">
@@ -647,21 +818,51 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
 
       <div id="settings-security" class="card hidden" style="padding:22px;">
-        <p style="font-size:13px;color:var(--muted);margin-top:0;">Apply these rules in your <b>Firebase Console → Realtime Database → Rules</b> so only signed-in admins can write data, while product pages stay publicly readable. Product images are compressed and stored as base64 strings inside <span class="mono">products</span> — no Firebase Storage setup is needed.</p>
+        <div class="field" style="margin-bottom:18px;">
+          <label>Your Admin UID</label>
+          <div class="slug-box"><i class="fa-solid fa-fingerprint" style="color:var(--blue-600);"></i><span class="url mono" id="adminUidLabel">—</span>
+            <button class="btn btn-icon btn-secondary btn-sm" style="flex-shrink:0;" onclick="UI.copyText(document.getElementById('adminUidLabel').textContent)" title="Copy UID"><i class="fa-solid fa-copy"></i></button>
+          </div>
+          <div class="hint">To authorize a new admin: have them sign in once with their own Firebase Auth account (they'll be blocked), copy their UID from the browser console error or Firebase Console → Authentication, then add it under <span class="mono">admins/&lt;uid&gt;: true</span> in the Realtime Database. The first person to ever sign in is auto-registered as the founding admin.</div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-top:0;">Apply these rules in your <b>Firebase Console → Realtime Database → Rules</b>. Public visitors can only read products/categories and create new orders (never edit or delete existing ones) — all other writes require a signed-in, allow-listed admin. Product images are compressed and stored as base64 strings inside <span class="mono">products</span> — no Firebase Storage setup is needed.</p>
         <pre class="mono" style="background:var(--ink);color:#CFE0FF;padding:16px;border-radius:12px;font-size:11.5px;overflow-x:auto;line-height:1.6;">{
   "rules": {
-    "products": { ".read": true, ".write": "auth != null" },
-    "categories": { ".read": true, ".write": "auth != null" },
-    "orders": {
+    "admins": {
       ".read": "auth != null",
-      ".write": true,
-      ".indexOn": ["createdAt","status"]
+      ".write": false
     },
-    "customers": { ".read": "auth != null", ".write": true },
-    "settings": { ".read": true, ".write": "auth != null" }
+    "products": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "categories": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "orders": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".indexOn": ["createdAt","status"],
+      "$orderId": {
+        ".write": "(auth != null && root.child('admins').child(auth.uid).val() === true) || (!data.exists() && newData.exists())",
+        ".validate": "newData.hasChildren(['customerName','phone','district','address','productId','total','status'])",
+        "customerName": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length < 100" },
+        "phone": { ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length < 20" },
+        "total": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "status": { ".validate": "auth != null || newData.val() === 'Pending'" }
+      }
+    },
+    "customers": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "settings": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    }
   }
 }</pre>
-        <p style="font-size:12px;color:var(--muted);">Note: "orders" write is public so customers can submit orders from the storefront; restrict further with App Check or a Cloud Function for production hardening. Keep product photos reasonably small (the editor auto-compresses uploads) since Realtime Database performs best with compact string values.</p>
+        <p style="font-size:12px;color:var(--muted);">Notes: (1) the <span class="mono">orders</span> rule lets a visitor create a brand-new order but never modify or delete one that already exists — only an allow-listed admin can update status. (2) <span class="mono">admins</span> is admin-readable and never client-writable, so access can only be granted via the Firebase Console or Admin SDK — a client can never self-promote. (3) Keep product photos reasonably small (the editor auto-compresses uploads) since Realtime Database performs best with compact string values. (4) For extra hardening in production, add Firebase App Check.</p>
       </div>
     </section>
   </div>
@@ -687,6 +888,18 @@ tbody tr:hover{background:var(--surface-2);}
           </div>
           <div class="field"><label>Description</label><textarea class="textarea" id="pf_desc" placeholder="Describe the product…"></textarea></div>
           <div class="field"><label>Category</label><select class="select" id="pf_category"></select></div>
+          <div class="field">
+            <label>Barcode / SKU</label>
+            <div class="input-group">
+              <input class="input" id="pf_barcode" placeholder="Scan or type a barcode number" oninput="Products.onBarcodeInput()">
+              <button type="button" class="input-group-addon" style="cursor:pointer;" onclick="Scanner.open('pf_barcode', ()=>Products.onBarcodeInput())" title="Scan barcode"><i class="fa-solid fa-barcode"></i></button>
+            </div>
+            <div class="hint">Used to quickly find this product with a barcode scan, and to print a barcode label.</div>
+            <div id="pf_barcodePreviewWrap" class="hidden" style="margin-top:10px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+              <canvas id="pf_barcodeCanvas" style="max-width:100%;"></canvas>
+              <div style="margin-top:8px;"><button type="button" class="btn btn-secondary btn-sm" onclick="Products.downloadBarcode()"><i class="fa-solid fa-download"></i> Download Barcode</button></div>
+            </div>
+          </div>
 
           <div class="section-title"><i class="fa-solid fa-images"></i> Product Images</div>
           <div class="upload-zone" onclick="document.getElementById('pf_imageInput').click()">
@@ -757,7 +970,10 @@ tbody tr:hover{background:var(--surface-2);}
   <div class="modal wide">
     <div class="modal-head"><h3 id="orderModalTitle">Order Details</h3><button class="modal-close" onclick="UI.closeModal('orderModal')"><i class="fa-solid fa-xmark"></i></button></div>
     <div class="modal-body" id="orderModalBody"></div>
-    <div class="modal-foot"><button class="btn btn-secondary" onclick="UI.closeModal('orderModal')">Close</button></div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" id="orderModalPrintBtn" onclick="Orders.printInvoice()"><i class="fa-solid fa-print"></i> Print Invoice</button>
+      <button class="btn btn-secondary" onclick="UI.closeModal('orderModal')">Close</button>
+    </div>
   </div>
 </div>
 
@@ -769,9 +985,32 @@ tbody tr:hover{background:var(--surface-2);}
       <form id="orderForm">
         <div class="field"><label>Full Name</label><input class="input" id="of_name" required placeholder="Your name"></div>
         <div class="field"><label>Phone Number</label><input class="input" id="of_phone" required placeholder="01XXXXXXXXX" type="tel"></div>
-        <div class="field"><label>District</label><select class="select" id="of_district" required></select></div>
+        <div class="grid-2">
+          <div class="field"><label>District (জেলা)</label><select class="select" id="of_district" required onchange="Storefront.onDistrictChange()"></select></div>
+          <div class="field"><label>Thana / Upazila (থানা)</label><select class="select" id="of_thana" required></select></div>
+        </div>
         <div class="field"><label>Full Address</label><textarea class="textarea" id="of_address" required placeholder="House, road, area…" style="min-height:60px;"></textarea></div>
         <div class="field"><label>Order Note (optional)</label><textarea class="textarea" id="of_note" placeholder="Any special instructions…" style="min-height:50px;"></textarea></div>
+
+        <div class="field">
+          <label>Payment Method</label>
+          <div class="pp-variant-pills" id="of_paymentPills">
+            <div class="pp-pill active" data-pay="COD" onclick="Storefront.selectPayment(this,'COD')"><i class="fa-solid fa-money-bill-wave"></i> Cash on Delivery</div>
+            <div class="pp-pill" data-pay="bKash" onclick="Storefront.selectPayment(this,'bKash')"><i class="fa-solid fa-mobile-screen-button"></i> bKash</div>
+          </div>
+        </div>
+
+        <div id="of_bkashBox" class="hidden" style="background:var(--info-bg);border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+          <p style="margin:0 0 10px;font-size:12.5px;color:var(--blue-700);font-weight:600;" id="of_bkashInstruction">
+            Send the total amount to our bKash number (Send Money), then enter the details below.
+          </p>
+          <div class="field" style="margin-bottom:10px;"><label>bKash Merchant Number</label>
+            <div class="slug-box"><i class="fa-solid fa-mobile-screen-button" style="color:var(--blue-600);"></i><span class="url mono" id="of_bkashMerchantNo">—</span></div>
+          </div>
+          <div class="field" style="margin-bottom:10px;"><label>Your bKash Number</label><input class="input" id="of_bkashNumber" placeholder="01XXXXXXXXX" type="tel"></div>
+          <div class="field" style="margin-bottom:0;"><label>Transaction ID</label><input class="input" id="of_bkashTrxId" placeholder="e.g. 8N7A6B5C4D"></div>
+        </div>
+
         <div class="card" style="padding:12px 14px;background:var(--surface-2);border:none;display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;">
           <span>Order Total</span><span class="mono" id="of_total">৳0</span>
         </div>
@@ -780,6 +1019,30 @@ tbody tr:hover{background:var(--surface-2);}
     <div class="modal-foot">
       <button class="btn btn-secondary" onclick="UI.closeModal('buyModal')">Cancel</button>
       <button class="btn btn-primary" id="of_submitBtn" onclick="Storefront.submitOrder()"><i class="fa-solid fa-bag-shopping"></i> Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= BARCODE SCANNER MODAL ============================= -->
+<div id="scannerModal" class="modal-backdrop hidden">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head"><h3>Scan Barcode</h3><button class="modal-close" onclick="Scanner.close()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body" style="padding:0;">
+      <div class="scanner-viewport">
+        <video id="scannerVideo" playsinline muted></video>
+        <div class="scanner-frame"></div>
+        <div class="scanner-line"></div>
+      </div>
+      <div style="padding:18px 22px;">
+        <p id="scannerStatus" style="text-align:center;margin:0 0 14px;font-size:12.5px;color:var(--muted);font-weight:600;">Point your camera at a barcode</p>
+        <div class="field" style="margin-bottom:0;">
+          <label>Or enter the number manually</label>
+          <div class="input-group">
+            <input class="input" id="scannerManualInput" placeholder="Type barcode / SKU number" onkeydown="if(event.key==='Enter'){event.preventDefault();Scanner.useManual();}">
+            <button class="input-group-addon" style="cursor:pointer;" onclick="Scanner.useManual()"><i class="fa-solid fa-check"></i></button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -816,6 +1079,84 @@ const db = firebase.database();
    directly inside Realtime Database — no Firebase Storage required. */
 
 /* ================================================================================
+   BANGLADESH DISTRICTS & THANAS (Upazilas) — used to populate the storefront
+   District / Thana selects on the order form. Feel free to edit this list.
+================================================================================ */
+const BD_LOCATIONS = {
+  "Dhaka": ["Dhaka Sadar","Dhamrai","Dohar","Keraniganj","Nawabganj","Savar"],
+  "Faridpur": ["Alfadanga","Bhanga","Boalmari","Charbhadrasan","Faridpur Sadar","Madhukhali","Nagarkanda","Sadarpur","Saltha"],
+  "Gazipur": ["Gazipur Sadar","Kaliakair","Kaliganj","Kapasia","Sreepur"],
+  "Gopalganj": ["Gopalganj Sadar","Kashiani","Kotalipara","Muksudpur","Tungipara"],
+  "Kishoreganj": ["Austagram","Bajitpur","Bhairab","Hossainpur","Itna","Karimganj","Katiadi","Kishoreganj Sadar","Kuliarchar","Mithamain","Nikli","Pakundia","Tarail"],
+  "Madaripur": ["Kalkini","Madaripur Sadar","Rajoir","Shibchar"],
+  "Manikganj": ["Daulatpur","Ghior","Harirampur","Manikganj Sadar","Saturia","Shibalaya","Singair"],
+  "Munshiganj": ["Gazaria","Lohajang","Munshiganj Sadar","Sirajdikhan","Sreenagar","Tongibari"],
+  "Narayanganj": ["Araihazar","Bandar","Narayanganj Sadar","Rupganj","Sonargaon"],
+  "Narsingdi": ["Belabo","Monohardi","Narsingdi Sadar","Palash","Raipura","Shibpur"],
+  "Rajbari": ["Baliakandi","Goalandaghat","Kalukhali","Pangsha","Rajbari Sadar"],
+  "Shariatpur": ["Bhedarganj","Damudya","Gosairhat","Naria","Shariatpur Sadar","Zajira"],
+  "Tangail": ["Basail","Bhuapur","Delduar","Dhanbari","Ghatail","Gopalpur","Kalihati","Madhupur","Mirzapur","Nagarpur","Sakhipur","Tangail Sadar"],
+  "Bandarban": ["Ali Kadam","Bandarban Sadar","Lama","Naikhongchhari","Rowangchhari","Ruma","Thanchi"],
+  "Brahmanbaria": ["Akhaura","Bancharampur","Bijoynagar","Brahmanbaria Sadar","Kasba","Nabinagar","Nasirnagar","Sarail"],
+  "Chandpur": ["Chandpur Sadar","Faridganj","Haimchar","Haziganj","Kachua","Matlab Dakshin","Matlab Uttar","Shahrasti"],
+  "Chattogram": ["Anwara","Banshkhali","Boalkhali","Chandanaish","Chattogram Sadar","Fatikchhari","Hathazari","Lohagara","Mirsharai","Patiya","Rangunia","Raozan","Sandwip","Satkania","Sitakunda"],
+  "Cumilla": ["Barura","Brahmanpara","Burichang","Chandina","Chauddagram","Cumilla Sadar","Daudkandi","Debidwar","Homna","Laksam","Meghna","Monohorgonj","Muradnagar","Nangalkot","Sadar Dakshin","Titas"],
+  "Cox's Bazar": ["Chakaria","Cox's Bazar Sadar","Kutubdia","Maheshkhali","Pekua","Ramu","Teknaf","Ukhia"],
+  "Feni": ["Chhagalnaiya","Daganbhuiyan","Feni Sadar","Fulgazi","Parshuram","Sonagazi"],
+  "Khagrachhari": ["Dighinala","Khagrachhari Sadar","Lakshmichhari","Mahalchhari","Manikchhari","Matiranga","Panchhari","Ramgarh"],
+  "Lakshmipur": ["Kamalnagar","Lakshmipur Sadar","Raipur","Ramganj","Ramgati"],
+  "Noakhali": ["Begumganj","Chatkhil","Companiganj","Hatiya","Kabirhat","Noakhali Sadar","Senbagh","Sonaimuri","Subarnachar"],
+  "Rangamati": ["Baghaichhari","Barkal","Belaichhari","Juraichhari","Kaptai","Kawkhali","Langadu","Naniarchar","Rajasthali","Rangamati Sadar"],
+  "Bogura": ["Adamdighi","Bogura Sadar","Dhunat","Dhupchanchia","Gabtali","Kahaloo","Nandigram","Sariakandi","Shajahanpur","Sherpur","Shibganj","Sonatola"],
+  "Joypurhat": ["Akkelpur","Joypurhat Sadar","Kalai","Khetlal","Panchbibi"],
+  "Naogaon": ["Atrai","Badalgachhi","Dhamoirhat","Mahadevpur","Manda","Naogaon Sadar","Niamatpur","Patnitala","Porsha","Raninagar","Sapahar"],
+  "Natore": ["Bagatipara","Baraigram","Gurudaspur","Lalpur","Natore Sadar","Singra"],
+  "Chapainawabganj": ["Bholahat","Chapainawabganj Sadar","Gomastapur","Nachole","Shibganj"],
+  "Pabna": ["Atgharia","Bera","Bhangura","Chatmohar","Faridpur","Ishwardi","Pabna Sadar","Santhia","Sujanagar"],
+  "Rajshahi": ["Bagha","Bagmara","Charghat","Durgapur","Godagari","Mohanpur","Paba","Puthia","Tanore"],
+  "Sirajganj": ["Belkuchi","Chauhali","Kamarkhanda","Kazipur","Raiganj","Shahjadpur","Sirajganj Sadar","Tarash","Ullapara"],
+  "Bagerhat": ["Bagerhat Sadar","Chitalmari","Fakirhat","Kachua","Mollahat","Mongla","Morrelganj","Rampal","Sarankhola"],
+  "Chuadanga": ["Alamdanga","Chuadanga Sadar","Damurhuda","Jibannagar"],
+  "Jashore": ["Abhaynagar","Bagherpara","Chaugachha","Jashore Sadar","Jhikargachha","Keshabpur","Manirampur","Sharsha"],
+  "Jhenaidah": ["Harinakunda","Jhenaidah Sadar","Kaliganj","Kotchandpur","Maheshpur","Shailkupa"],
+  "Khulna": ["Batiaghata","Dacope","Dighalia","Dumuria","Khulna Sadar","Koyra","Paikgachha","Phultala","Rupsa","Terokhada"],
+  "Kushtia": ["Bheramara","Daulatpur","Khoksa","Kumarkhali","Kushtia Sadar","Mirpur"],
+  "Magura": ["Magura Sadar","Mohammadpur","Shalikha","Sreepur"],
+  "Meherpur": ["Gangni","Meherpur Sadar","Mujibnagar"],
+  "Narail": ["Kalia","Lohagara","Narail Sadar"],
+  "Satkhira": ["Assasuni","Debhata","Kalaroa","Kaliganj","Satkhira Sadar","Shyamnagar","Tala"],
+  "Barguna": ["Amtali","Bamna","Barguna Sadar","Betagi","Patharghata","Taltali"],
+  "Barishal": ["Agailjhara","Babuganj","Bakerganj","Banaripara","Barishal Sadar","Gaurnadi","Hizla","Mehendiganj","Muladi","Wazirpur"],
+  "Bhola": ["Bhola Sadar","Burhanuddin","Char Fasson","Daulatkhan","Lalmohan","Manpura","Tazumuddin"],
+  "Jhalokati": ["Jhalokati Sadar","Kathalia","Nalchity","Rajapur"],
+  "Patuakhali": ["Bauphal","Dashmina","Dumki","Galachipa","Kalapara","Mirzaganj","Patuakhali Sadar","Rangabali"],
+  "Pirojpur": ["Bhandaria","Kawkhali","Mathbaria","Nazirpur","Nesarabad","Pirojpur Sadar","Zianagar"],
+  "Habiganj": ["Ajmiriganj","Bahubal","Baniyachong","Chunarughat","Habiganj Sadar","Lakhai","Madhabpur","Nabiganj","Shayestaganj"],
+  "Moulvibazar": ["Barlekha","Juri","Kamalganj","Kulaura","Moulvibazar Sadar","Rajnagar","Sreemangal"],
+  "Sunamganj": ["Bishwamvarpur","Chhatak","Derai","Dharampasha","Dowarabazar","Jagannathpur","Jamalganj","Shantiganj","Sullah","Sunamganj Sadar","Tahirpur"],
+  "Sylhet": ["Balaganj","Beanibazar","Bishwanath","Companiganj","Fenchuganj","Golapganj","Gowainghat","Jaintiapur","Kanaighat","Osmani Nagar","Sylhet Sadar","Zakiganj"],
+  "Dinajpur": ["Birampur","Birganj","Biral","Bochaganj","Chirirbandar","Dinajpur Sadar","Fulbari","Ghoraghat","Hakimpur","Kaharole","Khansama","Nawabganj","Parbatipur"],
+  "Gaibandha": ["Fulchhari","Gaibandha Sadar","Gobindaganj","Palashbari","Sadullapur","Saghata","Sundarganj"],
+  "Kurigram": ["Bhurungamari","Char Rajibpur","Chilmari","Kurigram Sadar","Nageshwari","Phulbari","Rajarhat","Raomari","Ulipur"],
+  "Lalmonirhat": ["Aditmari","Hatibandha","Kaliganj","Lalmonirhat Sadar","Patgram"],
+  "Nilphamari": ["Dimla","Domar","Jaldhaka","Kishoreganj","Nilphamari Sadar","Saidpur"],
+  "Panchagarh": ["Atwari","Boda","Debiganj","Panchagarh Sadar","Tetulia"],
+  "Rangpur": ["Badarganj","Gangachara","Kaunia","Mithapukur","Pirgachha","Pirganj","Rangpur Sadar","Taraganj"],
+  "Thakurgaon": ["Baliadangi","Haripur","Pirganj","Ranisankail","Thakurgaon Sadar"],
+  "Jamalpur": ["Bakshiganj","Dewanganj","Islampur","Jamalpur Sadar","Madarganj","Melandaha","Sarishabari"],
+  "Mymensingh": ["Bhaluka","Dhobaura","Fulbaria","Gafargaon","Gauripur","Haluaghat","Ishwarganj","Muktagachha","Mymensingh Sadar","Nandail","Phulpur","Trishal"],
+  "Netrokona": ["Atpara","Barhatta","Durgapur","Kalmakanda","Kendua","Khaliajuri","Madan","Mohanganj","Netrokona Sadar","Purbadhala"],
+  "Sherpur": ["Jhenaigati","Nakla","Nalitabari","Sherpur Sadar","Sreebardi"]
+};
+
+/* Order status lifecycle: the first 6 form the normal "happy path" timeline shown
+   as a progress tracker; Returned/Cancelled are terminal alternate outcomes shown
+   as a badge instead of a track. */
+const ORDER_TRACK_STATUSES = ['Pending','Confirmed','Processing','Shipped','Delivered','Completed'];
+const ORDER_ALT_STATUSES = ['Returned','Cancelled'];
+const ORDER_STATUSES = [...ORDER_TRACK_STATUSES, ...ORDER_ALT_STATUSES];
+
+/* ================================================================================
    STATE
 ================================================================================ */
 const State = {
@@ -828,7 +1169,8 @@ const State = {
   productImages: [],   // {url, path} for images already uploaded/queued for current editor session
   variantCount: 0,
   productFilter: 'all',
-  orderFilter: 'All'
+  orderFilter: 'All',
+  selectedOrders: new Set()
 };
 
 /* ================================================================================
@@ -848,8 +1190,32 @@ const UI = {
     document.getElementById('loadingText').textContent = text;
     ov.classList.toggle('hidden', !show);
   },
-  openModal(id){ document.getElementById(id).classList.remove('hidden'); document.body.style.overflow='hidden'; },
-  closeModal(id){ document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; },
+  _lockCount:0,
+  _scrollY:0,
+  lockScroll(){
+    if(UI._lockCount===0){
+      UI._scrollY = window.scrollY || window.pageYOffset || 0;
+      document.body.style.position='fixed';
+      document.body.style.top=`-${UI._scrollY}px`;
+      document.body.style.left='0';
+      document.body.style.right='0';
+      document.body.style.width='100%';
+    }
+    UI._lockCount++;
+  },
+  unlockScroll(){
+    UI._lockCount = Math.max(0, UI._lockCount-1);
+    if(UI._lockCount===0){
+      document.body.style.position='';
+      document.body.style.top='';
+      document.body.style.left='';
+      document.body.style.right='';
+      document.body.style.width='';
+      window.scrollTo(0, UI._scrollY);
+    }
+  },
+  openModal(id){ document.getElementById(id).classList.remove('hidden'); UI.lockScroll(); },
+  closeModal(id){ document.getElementById(id).classList.add('hidden'); UI.unlockScroll(); },
   confirm(title, msg, onConfirm){
     document.getElementById('confirmTitle').textContent = title;
     document.getElementById('confirmMsg').textContent = msg;
@@ -858,17 +1224,37 @@ const UI = {
     btn.parentNode.replaceChild(newBtn, btn);
     newBtn.addEventListener('click', ()=>{ UI.closeConfirm(); onConfirm(); });
     document.getElementById('confirmModal').classList.remove('hidden');
-    document.body.style.overflow='hidden';
+    UI.lockScroll();
   },
-  closeConfirm(){ document.getElementById('confirmModal').classList.add('hidden'); document.body.style.overflow=''; },
+  closeConfirm(){ document.getElementById('confirmModal').classList.add('hidden'); UI.unlockScroll(); },
   togglePw(){
     const inp = document.getElementById('loginPassword');
     const icon = document.getElementById('pwIcon');
     if(inp.type==='password'){ inp.type='text'; icon.className='fa-regular fa-eye-slash'; }
     else { inp.type='password'; icon.className='fa-regular fa-eye'; }
   },
-  openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarScrim').classList.add('show'); },
-  closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarScrim').classList.remove('show'); },
+  applyTheme(theme){
+    document.documentElement.dataset.theme = theme;
+    const btn = document.getElementById('themeToggleBtn');
+    if(btn) btn.innerHTML = theme==='dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+    try{ localStorage.setItem('nova_admin_theme', theme); }catch(e){}
+    // Chart.js colors need a fresh render to pick up new CSS values
+    if(document.getElementById('view-analytics')?.classList.contains('active')) Analytics.render();
+  },
+  toggleTheme(){
+    const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    UI.applyTheme(current==='dark' ? 'light' : 'dark');
+  },
+  initTheme(){
+    let saved = 'light';
+    try{ saved = localStorage.getItem('nova_admin_theme') || 'light'; }catch(e){}
+    UI.applyTheme(saved);
+  },
+  openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarScrim').classList.add('show'); UI.lockScroll(); },
+  closeSidebar(){
+    if(!document.getElementById('sidebar').classList.contains('open')) return;
+    document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarScrim').classList.remove('show'); UI.unlockScroll();
+  },
   money(n){
     const sym = (State.settings.currency) || '৳';
     n = Number(n)||0;
@@ -906,6 +1292,7 @@ const Router = {
     document.getElementById('view-'+viewName)?.classList.add('active');
     document.querySelector(`.nav-item[data-view="${viewName}"]`)?.classList.add('active');
     if(viewName==='analytics') Analytics.render();
+    if(viewName==='orderbarcode') OrderBarcode.render();
   }
 };
 
@@ -913,19 +1300,49 @@ const Router = {
    AUTH
 ================================================================================ */
 const Auth = {
+  _idleTimer:null,
+  _idleMinutes:20,
   watch(){
-    auth.onAuthStateChanged(user=>{
+    auth.onAuthStateChanged(async user=>{
       if(user){
+        const allowed = await Auth.verifyAdmin(user);
+        if(!allowed){
+          UI.toast('This account is not authorized as an admin. Contact the store owner.','error');
+          await auth.signOut();
+          return;
+        }
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('adminShell').classList.remove('hidden');
         document.getElementById('adminEmailLabel').textContent = user.email;
         document.getElementById('adminAvatar').textContent = (user.email||'A')[0].toUpperCase();
+        const uidLabel = document.getElementById('adminUidLabel');
+        if(uidLabel) uidLabel.textContent = user.uid;
         Data.attachAll();
+        Auth.startIdleTimer();
       } else {
         document.getElementById('adminShell').classList.add('hidden');
         document.getElementById('loginScreen').classList.remove('hidden');
+        Auth.stopIdleTimer();
       }
     });
+  },
+  /* Defense-in-depth beyond database rules: only UIDs listed under /admins are
+     granted access. The very first person to sign in registers as the founding
+     admin automatically; every account after that must be added by an existing
+     admin (Settings → Security Rules shows how). */
+  async verifyAdmin(user){
+    try{
+      const snap = await db.ref('admins').once('value');
+      const admins = snap.val() || {};
+      if(Object.keys(admins).length === 0){
+        await db.ref('admins/'+user.uid).set(true);
+        return true;
+      }
+      return admins[user.uid] === true;
+    } catch(e){
+      console.warn('Could not verify admin allow-list, allowing access:', e.message);
+      return true;
+    }
   },
   login(email, password){
     UI.loading(true, 'Signing in…');
@@ -938,6 +1355,15 @@ const Auth = {
         box.classList.add('show');
       });
   },
+  forgotPassword(e){
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    if(!email){ UI.toast('Enter your email above first, then click "Forgot password?"','error'); return; }
+    UI.loading(true, 'Sending reset email…');
+    auth.sendPasswordResetEmail(email)
+      .then(()=>{ UI.loading(false); UI.toast('Password reset email sent — check your inbox.','success'); })
+      .catch(err=>{ UI.loading(false); UI.toast(Auth.friendlyError(err.code),'error'); });
+  },
   friendlyError(code){
     const map = {
       'auth/invalid-email':'That email address looks invalid.',
@@ -947,6 +1373,27 @@ const Auth = {
       'auth/too-many-requests':'Too many attempts. Please wait and try again.'
     };
     return map[code] || 'Sign in failed. Please check your credentials.';
+  },
+  _idleActivityHandler(){ Auth.resetIdleTimer(); },
+  startIdleTimer(){
+    Auth.stopIdleTimer();
+    Auth.resetIdleTimer();
+    ['mousemove','keydown','click','touchstart','scroll'].forEach(evt=>{
+      document.addEventListener(evt, Auth._idleActivityHandler, {passive:true});
+    });
+  },
+  stopIdleTimer(){
+    clearTimeout(Auth._idleTimer);
+    ['mousemove','keydown','click','touchstart','scroll'].forEach(evt=>{
+      document.removeEventListener(evt, Auth._idleActivityHandler);
+    });
+  },
+  resetIdleTimer(){
+    clearTimeout(Auth._idleTimer);
+    Auth._idleTimer = setTimeout(()=>{
+      UI.toast(`Signed out after ${Auth._idleMinutes} minutes of inactivity`,'info');
+      auth.signOut();
+    }, Auth._idleMinutes*60*1000);
   },
   logout(){
     UI.confirm('Sign out?', 'You will need to sign in again to access the admin panel.', ()=>{
@@ -967,8 +1414,8 @@ document.getElementById('loginForm').addEventListener('submit', e=>{
 const Data = {
   attachAll(){
     db.ref('products').on('value', snap=>{ State.products = snap.val() || {}; Products.render(); Dashboard.render(); Analytics.renderIfActive(); });
-    db.ref('orders').on('value', snap=>{ State.orders = snap.val() || {}; Orders.render(); Customers.deriveAndRender(); Dashboard.render(); Analytics.renderIfActive(); });
-    db.ref('categories').on('value', snap=>{ State.categories = snap.val() || {}; Categories.render(); Products.populateCategoryOptions(); });
+    db.ref('orders').on('value', snap=>{ State.orders = snap.val() || {}; Orders.render(); Customers.deriveAndRender(); Dashboard.render(); Analytics.renderIfActive(); OrderBarcode.renderIfActive(); });
+    db.ref('categories').on('value', snap=>{ State.categories = snap.val() || {}; Categories.render(); Products.populateCategoryOptions(); Analytics.renderIfActive(); });
     db.ref('settings').once('value').then(snap=>{ State.settings = snap.val() || {}; Settings.populate(); });
   },
   slugify(text){
@@ -996,7 +1443,8 @@ const Dashboard = {
   render(){
     const orders = Object.values(State.orders);
     const products = Object.values(State.products);
-    const revenue = orders.filter(o=>o.status!=='Cancelled').reduce((s,o)=>s+(Number(o.total)||0),0);
+    // Revenue only counts orders that have actually been fulfilled (status = Completed = product sold).
+    const revenue = orders.filter(o=>o.status==='Completed').reduce((s,o)=>s+(Number(o.total)||0),0);
     const pending = orders.filter(o=>o.status==='Pending').length;
     const activeProducts = products.filter(p=>p.published).length;
 
@@ -1006,6 +1454,15 @@ const Dashboard = {
     document.getElementById('statProducts').textContent = activeProducts;
     document.getElementById('navProductCount').textContent = products.length;
     document.getElementById('navOrderCount').textContent = orders.length;
+
+    const lowStock = products.filter(p=>p.published && Number(p.stock)<=5);
+    const banner = document.getElementById('lowStockBanner');
+    if(lowStock.length){
+      document.getElementById('lowStockText').textContent = `${lowStock.length} product${lowStock.length>1?'s are':' is'} low on stock (5 or fewer left) — click to review.`;
+      banner.classList.remove('hidden');
+    } else {
+      banner.classList.add('hidden');
+    }
 
     const recent = Object.entries(State.orders).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)).slice(0,5);
     const list = document.getElementById('recentOrdersList');
@@ -1030,12 +1487,46 @@ const Dashboard = {
         </div>
         <span class="badge badge-gray">${p.stock||0} left</span>
       </div>`).join('') : `<p style="color:var(--muted);font-size:13px;">No products yet.</p>`;
+  },
+  goLowStock(){
+    Router.go('products');
+    document.querySelectorAll('#productStatusTabs .chip-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelector('#productStatusTabs .chip-tab[data-f="lowstock"]')?.classList.add('active');
+    State.productFilter = 'lowstock';
+    Products.render();
   }
 };
 
 /* ================================================================================
    PRODUCTS
 ================================================================================ */
+/* ================================================================================
+   BARCODE GENERATION — renders and downloads CODE128 barcode labels via JsBarcode.
+================================================================================ */
+const BarcodeGen = {
+  renderToCanvas(canvas, value){
+    if(!window.JsBarcode || !value) return false;
+    try{
+      JsBarcode(canvas, value, { format:'CODE128', displayValue:true, fontSize:14, height:56, margin:10, background:'#ffffff', lineColor:'#0F1B33' });
+      return true;
+    } catch(e){ console.warn('Barcode render failed:', e.message); return false; }
+  },
+  download(value, filename){
+    if(!value){ UI.toast('No barcode number to generate','error'); return; }
+    const canvas = document.createElement('canvas');
+    const ok = BarcodeGen.renderToCanvas(canvas, value);
+    if(!ok){ UI.toast('Could not generate a barcode image for this value','error'); return; }
+    canvas.toBlob(blob=>{
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = (filename||'barcode') + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      UI.toast('Barcode image downloaded','success');
+    });
+  }
+};
+
 const Products = {
   render(){
     const tbody = document.getElementById('productsTableBody');
@@ -1043,7 +1534,7 @@ const Products = {
     const search = (document.getElementById('productSearch').value||'').toLowerCase();
     const catFilter = document.getElementById('productCategoryFilter').value;
     let filtered = entries.filter(([id,p])=>{
-      if(search && !(p.name||'').toLowerCase().includes(search)) return false;
+      if(search && !(p.name||'').toLowerCase().includes(search) && !(p.barcode||'').toLowerCase().includes(search)) return false;
       if(catFilter && p.category!==catFilter) return false;
       if(State.productFilter==='published' && !p.published) return false;
       if(State.productFilter==='draft' && p.published) return false;
@@ -1057,19 +1548,20 @@ const Products = {
       const url = `${location.origin}${location.pathname}?product=${p.slug}`;
       const finalPrice = Products.finalPrice(p);
       return `<tr>
-        <td><div class="cell-flex">
+        <td data-label="Product"><div class="cell-flex">
           <img class="thumb" src="${(p.images&&p.images[0])||'https://placehold.co/80x80/EAF0FB/3B82F6?text=+'}">
-          <div><div class="tname">${UI.escapeHtml(p.name)} ${p.featured?'<i class="fa-solid fa-star" style="color:#F5B400;font-size:11px;" title="Featured"></i>':''}</div><div class="tsub">/${p.slug}</div></div>
+          <div><div class="tname">${UI.escapeHtml(p.name)} ${p.featured?'<i class="fa-solid fa-star" style="color:#F5B400;font-size:11px;" title="Featured"></i>':''}</div><div class="tsub">/${p.slug}${p.barcode?` · <i class="fa-solid fa-barcode"></i> ${UI.escapeHtml(p.barcode)}`:''}</div></div>
         </div></td>
-        <td>${UI.escapeHtml(State.categories[p.category]?.name || '—')}</td>
-        <td class="mono">${UI.money(finalPrice)} ${p.discount?`<div class="tsub" style="text-decoration:line-through;">${UI.money(p.price)}</div>`:''}</td>
-        <td>${Number(p.stock)<=5?`<span class="badge badge-red">${p.stock||0} low</span>`:(p.stock||0)}</td>
-        <td><span class="badge ${p.published?'badge-green':'badge-gray'}">${p.published?'Published':'Draft'}</span></td>
-        <td><div class="url-cell" title="${url}">${url}</div></td>
-        <td><div class="row-actions">
+        <td data-label="Category">${UI.escapeHtml(State.categories[p.category]?.name || '—')}</td>
+        <td class="mono" data-label="Price">${UI.money(finalPrice)} ${p.discount?`<div class="tsub" style="text-decoration:line-through;">${UI.money(p.price)}</div>`:''}</td>
+        <td data-label="Stock">${Number(p.stock)<=5?`<span class="badge badge-red">${p.stock||0} low</span>`:(p.stock||0)}</td>
+        <td data-label="Status"><span class="badge ${p.published?'badge-green':'badge-gray'}">${p.published?'Published':'Draft'}</span></td>
+        <td data-label="URL"><div class="url-cell" title="${url}">${url}</div></td>
+        <td data-label=""><div class="row-actions">
           <button class="btn btn-icon btn-secondary" title="Copy URL" onclick="UI.copyText('${url}')"><i class="fa-solid fa-copy"></i></button>
           <button class="btn btn-icon btn-secondary" title="View" onclick="window.open('${url}','_blank')"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
           <button class="btn btn-icon btn-secondary" title="Edit" onclick="Products.openEditor('${id}')"><i class="fa-solid fa-pen"></i></button>
+          ${p.barcode?`<button class="btn btn-icon btn-secondary" title="Download Barcode" onclick="Products.downloadBarcodeFor('${id}')"><i class="fa-solid fa-barcode"></i></button>`:''}
           <button class="btn btn-icon ${p.featured?'btn-primary':'btn-secondary'}" title="Toggle Featured" onclick="Products.toggleField('${id}','featured',${!p.featured})"><i class="fa-solid fa-star"></i></button>
           <button class="btn btn-icon btn-secondary" title="${p.published?'Unpublish':'Publish'}" onclick="Products.toggleField('${id}','published',${!p.published})"><i class="fa-solid ${p.published?'fa-eye-slash':'fa-eye'}"></i></button>
           <button class="btn btn-icon btn-danger" title="Delete" onclick="Products.remove('${id}')"><i class="fa-solid fa-trash"></i></button>
@@ -1101,6 +1593,7 @@ const Products = {
       document.getElementById('pf_name').value = p.name||'';
       document.getElementById('pf_desc').value = p.description||'';
       document.getElementById('pf_category').value = p.category||'';
+      document.getElementById('pf_barcode').value = p.barcode||'';
       document.getElementById('pf_price').value = p.price||'';
       document.getElementById('pf_discount').value = p.discount||'';
       document.getElementById('pf_stock').value = p.stock||'';
@@ -1114,6 +1607,7 @@ const Products = {
       document.getElementById('pf_name').value = '';
       document.getElementById('pf_desc').value = '';
       document.getElementById('pf_category').value = '';
+      document.getElementById('pf_barcode').value = '';
       document.getElementById('pf_price').value = '';
       document.getElementById('pf_discount').value = '';
       document.getElementById('pf_stock').value = '';
@@ -1123,6 +1617,7 @@ const Products = {
     }
     Products.renderImgStrip();
     Products.updatePreview();
+    Products.onBarcodeInput();
     UI.openModal('productModal');
   },
   onNameInput(){
@@ -1203,6 +1698,24 @@ const Products = {
     if(discount>0){ oldEl.textContent = UI.money(price); oldEl.classList.remove('hidden'); } else { oldEl.classList.add('hidden'); }
     document.getElementById('pv_img').src = (State.productImages[0]&&State.productImages[0].url) || 'https://placehold.co/500x500/EAF0FB/3B82F6?text=No+Image';
   },
+  onBarcodeInput(){
+    const val = document.getElementById('pf_barcode').value.trim();
+    const wrap = document.getElementById('pf_barcodePreviewWrap');
+    if(!val){ wrap.classList.add('hidden'); return; }
+    const canvas = document.getElementById('pf_barcodeCanvas');
+    const ok = BarcodeGen.renderToCanvas(canvas, val);
+    wrap.classList.toggle('hidden', !ok);
+  },
+  downloadBarcode(){
+    const val = document.getElementById('pf_barcode').value.trim();
+    const name = document.getElementById('pf_name').value.trim() || 'product';
+    BarcodeGen.download(val, Data.slugify(name)+'-barcode');
+  },
+  downloadBarcodeFor(id){
+    const p = State.products[id];
+    if(!p || !p.barcode){ UI.toast('This product has no barcode set','error'); return; }
+    BarcodeGen.download(p.barcode, (p.slug||'product')+'-barcode');
+  },
   collectVariants(){
     return Array.from(document.querySelectorAll('#pf_variantsWrap .variant-row')).map(row=>({
       name: row.querySelector('[data-vf=name]').value.trim(),
@@ -1234,6 +1747,7 @@ const Products = {
         slug: finalSlug,
         description: document.getElementById('pf_desc').value.trim(),
         category: document.getElementById('pf_category').value || '',
+        barcode: document.getElementById('pf_barcode').value.trim(),
         price: Number(document.getElementById('pf_price').value)||0,
         discount: Number(document.getElementById('pf_discount').value)||0,
         stock: Number(document.getElementById('pf_stock').value)||0,
@@ -1335,7 +1849,7 @@ const Categories = {
 ================================================================================ */
 const Orders = {
   badgeClass(status){
-    return {Pending:'badge-amber',Confirmed:'badge-blue',Processing:'badge-blue',Shipped:'badge-blue',Delivered:'badge-green',Cancelled:'badge-red'}[status]||'badge-gray';
+    return {Pending:'badge-amber',Confirmed:'badge-blue',Processing:'badge-blue',Shipped:'badge-blue',Delivered:'badge-green',Completed:'badge-teal',Returned:'badge-amber',Cancelled:'badge-red'}[status]||'badge-gray';
   },
   render(){
     const tbody = document.getElementById('ordersTableBody');
@@ -1343,29 +1857,116 @@ const Orders = {
     const search = (document.getElementById('orderSearch').value||'').toLowerCase();
     let filtered = entries.filter(([id,o])=>{
       if(State.orderFilter!=='All' && o.status!==State.orderFilter) return false;
-      if(search && !((o.customerName||'').toLowerCase().includes(search) || (o.phone||'').includes(search))) return false;
+      if(search && !(
+        (o.customerName||'').toLowerCase().includes(search) ||
+        (o.phone||'').includes(search) ||
+        (o.barcode||id||'').toLowerCase().includes(search) ||
+        id.slice(-6).toLowerCase().includes(search)
+      )) return false;
       return true;
     }).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
 
     document.getElementById('ordersEmpty').classList.toggle('hidden', entries.length>0);
     tbody.innerHTML = filtered.map(([id,o])=>`
       <tr>
-        <td class="mono tsub">#${id.slice(-6).toUpperCase()}</td>
-        <td><div class="tname">${UI.escapeHtml(o.customerName)}</div><div class="tsub">${UI.escapeHtml(o.phone)}</div></td>
-        <td>${UI.escapeHtml(o.productName||'')}${o.variant?`<div class="tsub">${UI.escapeHtml(o.variant)}</div>`:''}</td>
-        <td class="mono">${UI.money(o.total)}</td>
-        <td>
+        <td class="td-checkbox" data-label=""><input type="checkbox" class="order-check" data-id="${id}" onchange="Orders.toggleOne('${id}', this.checked)" ${State.selectedOrders.has(id)?'checked':''}></td>
+        <td class="mono tsub" data-label="Order">#${id.slice(-6).toUpperCase()}</td>
+        <td data-label="Customer"><div class="tname">${UI.escapeHtml(o.customerName)}</div><div class="tsub">${UI.escapeHtml(o.phone)}</div></td>
+        <td data-label="Product">${UI.escapeHtml(o.productName||'')}${o.variant?`<div class="tsub">${UI.escapeHtml(o.variant)}</div>`:''}</td>
+        <td class="mono" data-label="Total">${UI.money(o.total)}${o.paymentMethod?`<div class="tsub"><span class="badge ${o.paymentMethod==='bKash'?'badge-blue':'badge-gray'}" style="font-size:10px;">${o.paymentMethod}</span></div>`:''}</td>
+        <td data-label="Status">
           <select class="status-select" onchange="Orders.updateStatus('${id}', this.value)">
-            ${['Pending','Confirmed','Processing','Shipped','Delivered','Cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+            ${ORDER_STATUSES.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </td>
-        <td class="tsub">${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : '—'}</td>
-        <td><div class="row-actions">
+        <td class="tsub" data-label="Date">${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : '—'}</td>
+        <td data-label=""><div class="row-actions">
           <button class="btn btn-icon btn-secondary" title="View" onclick="Orders.viewDetail('${id}')"><i class="fa-solid fa-eye"></i></button>
+          <button class="btn btn-icon btn-secondary" title="View Barcode" onclick="OrderBarcode.view('${id}')"><i class="fa-solid fa-barcode"></i></button>
           <button class="btn btn-icon btn-danger" title="Delete" onclick="Orders.remove('${id}')"><i class="fa-solid fa-trash"></i></button>
         </div></td>
       </tr>
     `).join('');
+    Orders.updateBulkBar();
+  },
+  toggleSelectAll(checked){
+    document.querySelectorAll('.order-check').forEach(cb=>{
+      cb.checked = checked;
+      if(checked) State.selectedOrders.add(cb.dataset.id); else State.selectedOrders.delete(cb.dataset.id);
+    });
+    Orders.updateBulkBar();
+  },
+  toggleOne(id, checked){
+    if(checked) State.selectedOrders.add(id); else State.selectedOrders.delete(id);
+    document.getElementById('orderSelectAll').checked = document.querySelectorAll('.order-check').length>0 && document.querySelectorAll('.order-check:checked').length === document.querySelectorAll('.order-check').length;
+    Orders.updateBulkBar();
+  },
+  clearSelection(){
+    State.selectedOrders.clear();
+    document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false);
+    const selectAll = document.getElementById('orderSelectAll');
+    if(selectAll) selectAll.checked = false;
+    Orders.updateBulkBar();
+  },
+  updateBulkBar(){
+    const bar = document.getElementById('orderBulkBar');
+    const count = State.selectedOrders.size;
+    if(!bar) return;
+    bar.classList.toggle('hidden', count===0);
+    const countEl = document.getElementById('orderBulkCount');
+    if(countEl) countEl.textContent = `${count} selected`;
+  },
+  bulkApplyStatus(){
+    const status = document.getElementById('orderBulkStatus').value;
+    if(!status){ UI.toast('Choose a status to apply','error'); return; }
+    if(!State.selectedOrders.size){ UI.toast('No orders selected','error'); return; }
+    UI.confirm(`Update ${State.selectedOrders.size} order(s)?`, `All selected orders will be marked as ${status}.`, async ()=>{
+      UI.loading(true, 'Updating orders…');
+      const updates = {};
+      State.selectedOrders.forEach(id=>{ updates[`orders/${id}/status`] = status; });
+      try{
+        await db.ref().update(updates);
+        UI.loading(false);
+        UI.toast(`${State.selectedOrders.size} order(s) updated`,'success');
+        Orders.clearSelection();
+      } catch(err){ UI.loading(false); UI.toast('Update failed: '+err.message,'error'); }
+    });
+  },
+  bulkDelete(){
+    if(!State.selectedOrders.size){ UI.toast('No orders selected','error'); return; }
+    UI.confirm(`Delete ${State.selectedOrders.size} order(s)?`, 'This cannot be undone.', async ()=>{
+      UI.loading(true, 'Deleting orders…');
+      const updates = {};
+      State.selectedOrders.forEach(id=>{ updates[`orders/${id}`] = null; });
+      try{
+        await db.ref().update(updates);
+        UI.loading(false);
+        UI.toast(`${State.selectedOrders.size} order(s) deleted`,'success');
+        Orders.clearSelection();
+      } catch(err){ UI.loading(false); UI.toast('Delete failed: '+err.message,'error'); }
+    });
+  },
+  exportCsv(){
+    const entries = Object.entries(State.orders);
+    if(!entries.length){ UI.toast('No orders to export','error'); return; }
+    const headers = ['Order ID','Customer Name','Phone','District','Thana','Address','Product','Variant','Qty','Unit Price','Shipping','Total','Payment Method','Status','Note','Date'];
+    const escapeCsv = v => `"${String(v??'').replace(/"/g,'""')}"`;
+    const rows = entries
+      .sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0))
+      .map(([id,o])=>[
+        id, o.customerName, o.phone, o.district, o.thana||'', o.address, o.productName, o.variant||'',
+        o.qty, o.unitPrice, o.shipping, o.total, o.paymentMethod||'COD', o.status, o.note||'',
+        o.createdAt ? new Date(o.createdAt).toISOString() : ''
+      ].map(escapeCsv).join(','));
+    const csv = [headers.map(escapeCsv).join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    UI.toast('Orders exported to CSV','success');
   },
   updateStatus(id, status){
     db.ref('orders/'+id+'/status').set(status)
@@ -1376,11 +1977,11 @@ const Orders = {
     const o = State.orders[id];
     if(!o) return;
     document.getElementById('orderModalTitle').textContent = `Order #${id.slice(-6).toUpperCase()}`;
-    const steps = ['Pending','Confirmed','Processing','Shipped','Delivered'];
+    const steps = ORDER_TRACK_STATUSES;
     const currentIdx = steps.indexOf(o.status);
-    const isCancelled = o.status==='Cancelled';
+    const isAltStatus = ORDER_ALT_STATUSES.includes(o.status);
     document.getElementById('orderModalBody').innerHTML = `
-      ${isCancelled ? `<div class="badge badge-red" style="margin-bottom:14px;">Order Cancelled</div>` : `
+      ${isAltStatus ? `<div class="badge ${Orders.badgeClass(o.status)}" style="margin-bottom:14px;">Order ${o.status}</div>` : `
       <div class="status-track">
         ${steps.map((s,i)=>`<div class="st-step ${i<currentIdx?'done':''} ${i===currentIdx?'current':''}">
           <div class="dot"><i class="fa-solid ${i<currentIdx?'fa-check':'fa-circle'}" style="font-size:${i<currentIdx?'10px':'6px'};"></i></div><span>${s}</span>
@@ -1388,17 +1989,65 @@ const Orders = {
       </div>`}
       <div class="order-detail-grid" style="margin-top:20px;">
         <div class="od-block"><h5>Customer</h5><p>${UI.escapeHtml(o.customerName)}</p><p style="font-weight:400;color:var(--muted);">${UI.escapeHtml(o.phone)}</p></div>
-        <div class="od-block"><h5>Delivery</h5><p>${UI.escapeHtml(o.district)}</p><p style="font-weight:400;color:var(--muted);">${UI.escapeHtml(o.address)}</p></div>
+        <div class="od-block"><h5>Delivery</h5><p>${UI.escapeHtml(o.thana ? o.thana+', ' : '')}${UI.escapeHtml(o.district)}</p><p style="font-weight:400;color:var(--muted);">${UI.escapeHtml(o.address)}</p></div>
         <div class="od-block"><h5>Product</h5><p>${UI.escapeHtml(o.productName)}</p><p style="font-weight:400;color:var(--muted);">${o.variant?UI.escapeHtml(o.variant)+' · ':''}Qty: ${o.qty}</p></div>
         <div class="od-block"><h5>Total</h5><p class="mono">${UI.money(o.total)}</p></div>
+        <div class="od-block"><h5>Payment Method</h5><p>${o.paymentMethod==='bKash' ? '<i class="fa-solid fa-mobile-screen-button" style="color:var(--blue-600);"></i> bKash' : '<i class="fa-solid fa-money-bill-wave" style="color:var(--success);"></i> Cash on Delivery'}</p>
+          ${o.paymentMethod==='bKash' ? `<p style="font-weight:400;color:var(--muted);">From: ${UI.escapeHtml(o.bkashNumber||'—')}<br>Trx ID: <span class="mono">${UI.escapeHtml(o.bkashTrxId||'—')}</span></p>` : ''}
+        </div>
       </div>
       ${o.note ? `<div class="od-block" style="margin-top:14px;"><h5>Note</h5><p style="font-weight:400;">${UI.escapeHtml(o.note)}</p></div>` : ''}
+      <div class="od-block" style="margin-top:14px;text-align:center;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;">
+        <h5 style="text-align:left;">Order Barcode</h5>
+        <canvas id="orderModalBarcode"></canvas>
+        <div style="margin-top:8px;"><button type="button" class="btn btn-secondary btn-sm" onclick="OrderBarcode.download('${id}')"><i class="fa-solid fa-download"></i> Download Barcode</button></div>
+      </div>
     `;
+    setTimeout(()=>{ const c = document.getElementById('orderModalBarcode'); if(c) BarcodeGen.renderToCanvas(c, o.barcode || id); }, 0);
+    document.getElementById('orderModalPrintBtn')?.setAttribute('onclick', `Orders.printInvoice('${id}')`);
+    document.getElementById('orderModalPrintBtn')?.classList.remove('hidden');
     UI.openModal('orderModal');
+  },
+  printInvoice(id){
+    const o = State.orders[id];
+    if(!o) return;
+    const s = State.settings;
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <html><head><title>Invoice #${id.slice(-6).toUpperCase()}</title>
+      <meta charset="utf-8">
+      <style>
+        body{font-family:Arial,sans-serif;color:#0F1B33;padding:36px;max-width:640px;margin:0 auto;}
+        h1{font-size:20px;margin:0 0 2px;} .muted{color:#66738F;font-size:12.5px;}
+        table{width:100%;border-collapse:collapse;margin-top:22px;}
+        td{padding:8px 0;font-size:13.5px;border-bottom:1px solid #EEF2FA;vertical-align:top;}
+        td.label{color:#66738F;width:150px;}
+        .total-row td{font-weight:700;font-size:15px;border-top:2px solid #0F1B33;border-bottom:none;padding-top:12px;}
+        .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0F1B33;padding-bottom:14px;}
+      </style></head><body>
+        <div class="header">
+          <div><h1>${UI.escapeHtml(s.storeName||'Invoice')}</h1><div class="muted">${UI.escapeHtml(s.address||'')}</div><div class="muted">${UI.escapeHtml(s.storePhone||'')}</div></div>
+          <div style="text-align:right;"><div class="muted">Invoice</div><div style="font-weight:700;">#${id.slice(-6).toUpperCase()}</div><div class="muted">${o.createdAt?new Date(o.createdAt).toLocaleString():''}</div></div>
+        </div>
+        <table>
+          <tr><td class="label">Customer</td><td>${UI.escapeHtml(o.customerName)} — ${UI.escapeHtml(o.phone)}</td></tr>
+          <tr><td class="label">Delivery Address</td><td>${UI.escapeHtml(o.address)}, ${UI.escapeHtml(o.thana||'')}, ${UI.escapeHtml(o.district)}</td></tr>
+          <tr><td class="label">Product</td><td>${UI.escapeHtml(o.productName)}${o.variant?' — '+UI.escapeHtml(o.variant):''} × ${o.qty}</td></tr>
+          <tr><td class="label">Payment Method</td><td>${o.paymentMethod||'COD'}</td></tr>
+          <tr><td class="label">Status</td><td>${o.status}</td></tr>
+          <tr><td class="label">Subtotal</td><td>${UI.money(o.unitPrice * o.qty)}</td></tr>
+          <tr><td class="label">Shipping</td><td>${UI.money(o.shipping)}</td></tr>
+          <tr class="total-row"><td class="label">Total</td><td>${UI.money(o.total)}</td></tr>
+        </table>
+      </body></html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(()=>win.print(), 300);
   },
   remove(id){
     UI.confirm('Delete order?', 'This order record will be permanently removed.', ()=>{
-      db.ref('orders/'+id).remove().then(()=>UI.toast('Order deleted','success'));
+      db.ref('orders/'+id).remove().then(()=>{ State.selectedOrders.delete(id); UI.toast('Order deleted','success'); });
     });
   }
 };
@@ -1413,6 +2062,68 @@ document.querySelectorAll('#orderStatusTabs .chip-tab').forEach(tab=>{
 });
 
 /* ================================================================================
+   ORDER BARCODE — every order gets an auto-generated barcode (its order ID).
+================================================================================ */
+const OrderBarcode = {
+  renderIfActive(){ if(document.getElementById('view-orderbarcode')?.classList.contains('active')) OrderBarcode.render(); },
+  render(){
+    const grid = document.getElementById('obGrid');
+    if(!grid) return;
+    const search = (document.getElementById('obSearch')?.value||'').toLowerCase();
+    const entries = Object.entries(State.orders)
+      .filter(([id,o])=>{
+        if(!search) return true;
+        return (o.customerName||'').toLowerCase().includes(search) ||
+          (o.phone||'').includes(search) ||
+          (o.barcode||id||'').toLowerCase().includes(search) ||
+          id.slice(-6).toLowerCase().includes(search);
+      })
+      .sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+
+    document.getElementById('obEmpty').classList.toggle('hidden', Object.keys(State.orders).length>0);
+    grid.innerHTML = entries.map(([id,o])=>`
+      <div class="card" style="padding:14px;text-align:center;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span class="mono tsub">#${id.slice(-6).toUpperCase()}</span>
+          <span class="badge ${Orders.badgeClass(o.status)}">${o.status}</span>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px;">
+          <canvas id="obCanvas_${id}"></canvas>
+        </div>
+        <div class="tname" style="margin-top:8px;">${UI.escapeHtml(o.customerName||'')}</div>
+        <div class="tsub">${UI.escapeHtml(o.productName||'')}</div>
+        <div class="row-actions" style="justify-content:center;margin-top:10px;">
+          <button class="btn btn-icon btn-secondary" title="View order" onclick="Orders.viewDetail('${id}')"><i class="fa-solid fa-eye"></i></button>
+          <button class="btn btn-icon btn-secondary" title="Download barcode" onclick="OrderBarcode.download('${id}')"><i class="fa-solid fa-download"></i></button>
+        </div>
+      </div>
+    `).join('');
+    entries.forEach(([id,o])=>{
+      const c = document.getElementById('obCanvas_'+id);
+      if(c) BarcodeGen.renderToCanvas(c, o.barcode || id);
+    });
+  },
+  view(id){
+    const o = State.orders[id];
+    if(!o) return;
+    document.getElementById('obModalTitle').textContent = `Order #${id.slice(-6).toUpperCase()}`;
+    document.getElementById('obModalSub').textContent = `${o.customerName||''} · ${o.productName||''}`;
+    document.getElementById('obModalDownloadBtn').setAttribute('onclick', `OrderBarcode.download('${id}')`);
+    UI.openModal('orderBarcodeModal');
+    setTimeout(()=>{
+      const c = document.getElementById('obModalCanvas');
+      if(c) BarcodeGen.renderToCanvas(c, o.barcode || id);
+    }, 0);
+  },
+  download(id){
+    const o = State.orders[id];
+    if(!o) return;
+    BarcodeGen.download(o.barcode || id, 'order-'+id.slice(-6).toLowerCase());
+  }
+};
+document.getElementById('obSearch')?.addEventListener('input', OrderBarcode.render);
+
+/* ================================================================================
    CUSTOMERS — derived from orders
 ================================================================================ */
 const Customers = {
@@ -1422,21 +2133,55 @@ const Customers = {
       const key = (o.phone||'unknown').trim();
       if(!map[key]) map[key] = { name:o.customerName, phone:o.phone, district:o.district, orders:0, total:0 };
       map[key].orders++;
-      if(o.status!=='Cancelled') map[key].total += Number(o.total)||0;
+      if(!ORDER_ALT_STATUSES.includes(o.status)) map[key].total += Number(o.total)||0;
     });
     const list = Object.values(map).sort((a,b)=>b.total-a.total);
     const search = (document.getElementById('customerSearch')?.value||'').toLowerCase();
     const filtered = list.filter(c=>!search || (c.name||'').toLowerCase().includes(search) || (c.phone||'').includes(search));
     document.getElementById('customersEmpty').classList.toggle('hidden', list.length>0);
     document.getElementById('customersTableBody').innerHTML = filtered.map(c=>`
-      <tr>
-        <td class="tname">${UI.escapeHtml(c.name)}</td>
-        <td class="mono">${UI.escapeHtml(c.phone)}</td>
-        <td>${UI.escapeHtml(c.district||'—')}</td>
-        <td>${c.orders}</td>
-        <td class="mono">${UI.money(c.total)}</td>
+      <tr style="cursor:pointer;" onclick="Customers.viewDetail('${UI.escapeHtml(c.phone)}')">
+        <td class="tname" data-label="Customer">${UI.escapeHtml(c.name)}</td>
+        <td class="mono" data-label="Phone">${UI.escapeHtml(c.phone)}</td>
+        <td data-label="District">${UI.escapeHtml(c.district||'—')}</td>
+        <td data-label="Orders">${c.orders}</td>
+        <td class="mono" data-label="Total Spent">${UI.money(c.total)}</td>
       </tr>
     `).join('');
+  },
+  viewDetail(phone){
+    const orders = Object.entries(State.orders)
+      .filter(([id,o])=>(o.phone||'').trim()===phone)
+      .sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+    if(!orders.length) return;
+    const first = orders[0][1];
+    const totalSpent = orders.filter(([id,o])=>!ORDER_ALT_STATUSES.includes(o.status)).reduce((s,[id,o])=>s+(Number(o.total)||0),0);
+    document.getElementById('orderModalTitle').textContent = `Customer — ${first.customerName}`;
+    document.getElementById('orderModalBody').innerHTML = `
+      <div class="order-detail-grid" style="margin-bottom:18px;">
+        <div class="od-block"><h5>Contact</h5><p>${UI.escapeHtml(first.customerName)}</p><p style="font-weight:400;color:var(--muted);">${UI.escapeHtml(phone)}</p></div>
+        <div class="od-block"><h5>Lifetime Value</h5><p class="mono">${UI.money(totalSpent)}</p><p style="font-weight:400;color:var(--muted);">${orders.length} order${orders.length!==1?'s':''}</p></div>
+      </div>
+      <h5 style="font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin:0 0 10px;">Order History</h5>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Order</th><th>Product</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+            ${orders.map(([id,o])=>`
+              <tr style="cursor:pointer;" onclick="Orders.viewDetail('${id}')">
+                <td class="mono tsub" data-label="Order">#${id.slice(-6).toUpperCase()}</td>
+                <td data-label="Product">${UI.escapeHtml(o.productName||'')}</td>
+                <td class="mono" data-label="Total">${UI.money(o.total)}</td>
+                <td data-label="Status"><span class="badge ${Orders.badgeClass(o.status)}">${o.status}</span></td>
+                <td class="tsub" data-label="Date">${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : '—'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('orderModalPrintBtn')?.classList.add('hidden');
+    UI.openModal('orderModal');
   }
 };
 document.getElementById('customerSearch').addEventListener('input', Customers.deriveAndRender);
@@ -1445,57 +2190,154 @@ document.getElementById('customerSearch').addEventListener('input', Customers.de
    ANALYTICS
 ================================================================================ */
 let chartStatus, chartCategory, chartTrend;
+if(window.Chart){
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = '#66738F';
+}
 const Analytics = {
+  range: 30, // days, or 'all'
   renderIfActive(){ if(document.getElementById('view-analytics').classList.contains('active')) Analytics.render(); },
+  setRange(range){
+    Analytics.range = range;
+    document.querySelectorAll('#analyticsRangeTabs .chip-tab').forEach(t=>t.classList.toggle('active', t.dataset.r===String(range)));
+    Analytics.render();
+  },
   render(){
-    const orders = Object.values(State.orders);
+    const canvasStatus = document.getElementById('chartStatus');
+    const canvasCategory = document.getElementById('chartCategory');
+    const canvasTrend = document.getElementById('chartTrend');
+    if(!canvasStatus || !canvasCategory || !canvasTrend) return;
+    if(!window.Chart){
+      // Chart.js failed to load (e.g. blocked/slow network) — show a clear message instead of a silent blank box.
+      [canvasStatus, canvasCategory, canvasTrend].forEach(canvas=>{
+        const wrap = canvas.closest('.chart-wrap');
+        if(wrap) wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12.5px;text-align:center;padding:0 24px;line-height:1.5;"><span><i class="fa-solid fa-triangle-exclamation"></i> Charts could not load. Check your internet connection and reload the page.</span></div>';
+      });
+      return;
+    }
+
+    const allOrders = Object.values(State.orders);
+    const rangeDays = Analytics.range === 'all' ? null : Number(Analytics.range);
+    const cutoff = rangeDays ? Date.now() - rangeDays*86400000 : null;
+    const orders = cutoff ? allOrders.filter(o=>(o.createdAt||0) >= cutoff) : allOrders;
+
+    // Top stat row for the selected range — revenue only counts Completed (sold) orders.
+    const completedOrders = orders.filter(o=>o.status==='Completed');
+    const revenue = completedOrders.reduce((s,o)=>s+(Number(o.total)||0),0);
+    document.getElementById('anStatRevenue').textContent = UI.money(revenue);
+    document.getElementById('anStatOrders').textContent = orders.length;
+    document.getElementById('anStatAvg').textContent = UI.money(completedOrders.length ? revenue/completedOrders.length : 0);
+    document.getElementById('chartTrendTitle').innerHTML = `<i class="fa-solid fa-chart-line"></i> Orders Trend — ${rangeDays ? `Last ${rangeDays} Days` : 'All Time'}`;
+
     const statusCounts = {};
-    ['Pending','Confirmed','Processing','Shipped','Delivered','Cancelled'].forEach(s=>statusCounts[s]=0);
+    ORDER_STATUSES.forEach(s=>statusCounts[s]=0);
     orders.forEach(o=>{ if(statusCounts[o.status]!==undefined) statusCounts[o.status]++; });
 
     const catRevenue = {};
     orders.forEach(o=>{
-      if(o.status==='Cancelled') return;
+      if(o.status!=='Completed') return;
       const prod = Object.values(State.products).find(p=>p.slug===o.productSlug);
       const catName = (prod && State.categories[prod.category]?.name) || 'Other';
       catRevenue[catName] = (catRevenue[catName]||0) + (Number(o.total)||0);
     });
+    const catIdByName = {};
+    Object.entries(State.categories).forEach(([id,c])=>{ catIdByName[c.name] = id; });
 
-    const days = [];
-    const dayCounts = [];
-    for(let i=13;i>=0;i--){
-      const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
-      days.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric'}));
-      const next = d.getTime()+86400000;
-      dayCounts.push(orders.filter(o=>o.createdAt>=d.getTime() && o.createdAt<next).length);
+    // Trend: daily buckets for a ranged view, or monthly buckets for "All Time" when the range is long
+    const trendLabels = [];
+    const trendCounts = [];
+    if(rangeDays){
+      for(let i=rangeDays-1;i>=0;i--){
+        const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+        trendLabels.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+        const next = d.getTime()+86400000;
+        trendCounts.push(orders.filter(o=>o.createdAt>=d.getTime() && o.createdAt<next).length);
+      }
+    } else {
+      const buckets = {};
+      orders.forEach(o=>{
+        const d = new Date(o.createdAt||Date.now());
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        buckets[key] = (buckets[key]||0)+1;
+      });
+      Object.keys(buckets).sort().forEach(key=>{
+        const [y,m] = key.split('-');
+        trendLabels.push(new Date(Number(y), Number(m)-1, 1).toLocaleDateString('en-US',{month:'short',year:'2-digit'}));
+        trendCounts.push(buckets[key]);
+      });
+      if(!trendLabels.length){ trendLabels.push('No data'); trendCounts.push(0); }
     }
 
-    const palette = ['#2563EB','#60A5FA','#0EA05A','#F5B400','#D5372E','#8B5CF6'];
+    const palette = ['#2563EB','#60A5FA','#0EA05A','#F5B400','#D5372E','#8B5CF6','#EC4899','#14B8A6'];
+    const commonGrid = { grid:{ color:'#EEF2FA' }, ticks:{ font:{ size:11 } } };
 
+    // Build the charts on the next animation frame so the canvases have already been
+    // laid out (fixes charts staying blank right when the Analytics tab is first opened).
+    requestAnimationFrame(()=>{
     if(chartStatus) chartStatus.destroy();
-    chartStatus = new Chart(document.getElementById('chartStatus'), {
+    chartStatus = new Chart(canvasStatus, {
       type:'bar',
-      data:{ labels:Object.keys(statusCounts), datasets:[{ data:Object.values(statusCounts), backgroundColor:'#2563EB', borderRadius:6 }] },
-      options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} }
+      data:{ labels:Object.keys(statusCounts), datasets:[{ data:Object.values(statusCounts), backgroundColor:'#2563EB', borderRadius:6, maxBarThickness:42 }] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        onClick:(evt, elements)=>{
+          if(!elements.length) return;
+          const status = Object.keys(statusCounts)[elements[0].index];
+          Router.go('orders');
+          document.querySelectorAll('#orderStatusTabs .chip-tab').forEach(t=>t.classList.toggle('active', t.dataset.f===status));
+          State.orderFilter = status;
+          Orders.render();
+        },
+        onHover:(evt, elements)=>{ evt.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => `${ctx.parsed.y} order${ctx.parsed.y===1?'':'s'} — click to view` } } },
+        scales:{ y:{ beginAtZero:true, ticks:{ precision:0, ...commonGrid.ticks }, grid:commonGrid.grid }, x:{ grid:{ display:false }, ticks:commonGrid.ticks } }
+      }
     });
 
     if(chartCategory) chartCategory.destroy();
     const catLabels = Object.keys(catRevenue);
-    chartCategory = new Chart(document.getElementById('chartCategory'), {
+    chartCategory = new Chart(canvasCategory, {
       type:'doughnut',
-      data:{ labels: catLabels.length?catLabels:['No data'], datasets:[{ data: catLabels.length?Object.values(catRevenue):[1], backgroundColor: catLabels.length?palette:['#E3E9F5'] }] },
-      options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}} }
+      data:{ labels: catLabels.length?catLabels:['No data yet'], datasets:[{ data: catLabels.length?Object.values(catRevenue):[1], backgroundColor: catLabels.length?palette:['#E3E9F5'], borderWidth:2, borderColor:'#fff' }] },
+      options:{
+        responsive:true, maintainAspectRatio:false, cutout:'62%',
+        onClick:(evt, elements)=>{
+          if(!elements.length || !catLabels.length) return;
+          const catName = catLabels[elements[0].index];
+          const catId = catIdByName[catName];
+          Router.go('products');
+          document.getElementById('productCategoryFilter').value = catId || '';
+          Products.render();
+        },
+        onHover:(evt, elements)=>{ evt.native.target.style.cursor = (elements.length && catLabels.length) ? 'pointer' : 'default'; },
+        plugins:{
+          legend:{ position:'bottom', labels:{ boxWidth:10, padding:14, font:{size:11} } },
+          tooltip:{ enabled: catLabels.length>0, callbacks:{ label: ctx => ` ${ctx.label}: ${UI.money(ctx.parsed)}` } }
+        }
+      }
     });
 
     if(chartTrend) chartTrend.destroy();
-    chartTrend = new Chart(document.getElementById('chartTrend'), {
+    chartTrend = new Chart(canvasTrend, {
       type:'line',
-      data:{ labels:days, datasets:[{ data:dayCounts, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,.12)', fill:true, tension:.35, pointRadius:3 }] },
-      options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} }
+      data:{ labels:trendLabels, datasets:[{ data:trendCounts, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,.12)', fill:true, tension:.35, pointRadius:3, pointBackgroundColor:'#2563EB' }] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => `${ctx.parsed.y} order${ctx.parsed.y===1?'':'s'}` } } },
+        scales:{ y:{ beginAtZero:true, ticks:{ precision:0, ...commonGrid.ticks }, grid:commonGrid.grid }, x:{ grid:{ display:false }, ticks:commonGrid.ticks } }
+      }
+    });
+    // Extra safety: force a resize pass in case the container size changed after creation.
+    [chartStatus, chartCategory, chartTrend].forEach(c=>{ try{ c && c.resize(); }catch(e){} });
     });
   }
 };
-document.querySelectorAll('#adminShell .nav-item').forEach(n=>{}); // reserved
+document.querySelectorAll('#analyticsRangeTabs .chip-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    const val = tab.dataset.r === 'all' ? 'all' : Number(tab.dataset.r);
+    Analytics.setRange(val);
+  });
+});
 
 /* ================================================================================
    SETTINGS
@@ -1508,9 +2350,10 @@ const Settings = {
     document.getElementById('setCurrency').value = s.currency||'৳';
     document.getElementById('setLogo').value = s.logo||'';
     document.getElementById('setAddress').value = s.address||'';
-    document.getElementById('setDistricts').value = (s.districts||[]).join(', ');
     document.getElementById('setShipInside').value = s.shipInside||'';
     document.getElementById('setShipOutside').value = s.shipOutside||'';
+    document.getElementById('setBkashNumber').value = s.bkashNumber||'';
+    document.getElementById('setBkashInstruction').value = s.bkashInstruction||'';
     document.getElementById('setFacebook').value = s.facebook||'';
     document.getElementById('setMessenger').value = s.messenger||'';
     document.getElementById('setWhatsapp').value = s.whatsapp||'';
@@ -1527,9 +2370,13 @@ const Settings = {
       };
     } else if(section==='shipping'){
       payload = {
-        districts: document.getElementById('setDistricts').value.split(',').map(s=>s.trim()).filter(Boolean),
         shipInside: Number(document.getElementById('setShipInside').value)||0,
         shipOutside: Number(document.getElementById('setShipOutside').value)||0
+      };
+    } else if(section==='payment'){
+      payload = {
+        bkashNumber: document.getElementById('setBkashNumber').value.trim(),
+        bkashInstruction: document.getElementById('setBkashInstruction').value.trim()
       };
     } else if(section==='social'){
       payload = {
@@ -1548,7 +2395,7 @@ document.querySelectorAll('.settings-nav .chip-tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.settings-nav .chip-tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
-    ['store','shipping','social','security'].forEach(s=>{
+    ['store','shipping','payment','social','security'].forEach(s=>{
       document.getElementById('settings-'+s).classList.toggle('hidden', s!==tab.dataset.s);
     });
   });
@@ -1569,9 +2416,86 @@ document.getElementById('globalSearch').addEventListener('keydown', function(e){
 });
 
 /* ================================================================================
+   BARCODE SCANNER — uses the device camera (via ZXing) to read 1D/2D barcodes.
+   Falls back to a manual entry field if the camera or library is unavailable.
+================================================================================ */
+const Scanner = {
+  reader:null,
+  targetFieldId:null,
+  onDone:null,
+  open(targetFieldId, onDone){
+    Scanner.targetFieldId = targetFieldId || null;
+    Scanner.onDone = typeof onDone === 'function' ? onDone : null;
+    document.getElementById('scannerManualInput').value = '';
+    document.getElementById('scannerStatus').textContent = 'Point your camera at a barcode';
+    UI.openModal('scannerModal');
+    Scanner.start();
+  },
+  async start(){
+    const statusEl = document.getElementById('scannerStatus');
+    if(!window.ZXing){
+      statusEl.textContent = 'Scanner library unavailable — enter the number manually below.';
+      return;
+    }
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      statusEl.textContent = 'Camera not supported on this browser — enter the number manually below.';
+      return;
+    }
+    try{
+      Scanner.reader = new ZXing.BrowserMultiFormatReader();
+      const devices = await Scanner.reader.listVideoInputDevices();
+      if(!devices.length){
+        statusEl.textContent = 'No camera found — enter the number manually below.';
+        return;
+      }
+      const backCam = devices.find(d=>/back|rear|environment/i.test(d.label));
+      const deviceId = (backCam || devices[devices.length-1]).deviceId;
+      Scanner.reader.decodeFromVideoDevice(deviceId, 'scannerVideo', (result, err)=>{
+        if(result) Scanner.handleResult(result.getText());
+      });
+    } catch(err){
+      console.error(err);
+      statusEl.textContent = 'Camera access denied or unavailable — enter the number manually below.';
+    }
+  },
+  handleResult(text){
+    Scanner.stop();
+    UI.closeModal('scannerModal');
+    Scanner.applyResult(text);
+  },
+  useManual(){
+    const val = document.getElementById('scannerManualInput').value.trim();
+    if(!val){ UI.toast('Enter a barcode number','error'); return; }
+    Scanner.stop();
+    UI.closeModal('scannerModal');
+    Scanner.applyResult(val);
+  },
+  applyResult(text){
+    if(Scanner.targetFieldId){
+      const el = document.getElementById(Scanner.targetFieldId);
+      if(el){
+        el.value = text;
+        el.dispatchEvent(new Event('input', {bubbles:true}));
+        el.dispatchEvent(new Event('change', {bubbles:true}));
+      }
+    }
+    if(Scanner.onDone) Scanner.onDone(text);
+    UI.toast('Barcode scanned: '+text,'success');
+  },
+  stop(){
+    try{ Scanner.reader?.reset(); }catch(e){}
+    Scanner.reader = null;
+  },
+  close(){
+    Scanner.stop();
+    UI.closeModal('scannerModal');
+  }
+};
+
+/* ================================================================================
    STOREFRONT — public product page + buy now flow
 ================================================================================ */
-let ppState = { product:null, id:null, activeImg:0, qty:1, selectedVariant:null };
+let ppState = { product:null, id:null, activeImg:0, qty:1, selectedVariant:null, paymentMethod:'COD' };
 
 const Storefront = {
   async render(slug){
@@ -1615,7 +2539,7 @@ const Storefront = {
     const images = p.images && p.images.length ? p.images : ['https://placehold.co/600x600/EAF0FB/3B82F6?text=No+Image'];
     const finalPrice = Products.finalPrice(p);
     const shareUrl = `${location.origin}${location.pathname}?product=${p.slug}`;
-    const districts = State.settings.districts && State.settings.districts.length ? State.settings.districts : ['Dhaka','Chattogram','Sylhet','Khulna','Rajshahi','Barishal','Rangpur','Mymensingh'];
+    const districts = Object.keys(BD_LOCATIONS);
 
     document.getElementById('pp_content').innerHTML = `
       <div class="pp-grid">
@@ -1666,8 +2590,11 @@ const Storefront = {
         </div>
       </div>
     `;
-    // populate district select for order form
+    // populate district select for order form, then its matching thana list
     document.getElementById('of_district').innerHTML = districts.map(d=>`<option value="${UI.escapeHtml(d)}">${UI.escapeHtml(d)}</option>`).join('');
+    document.getElementById('of_bkashMerchantNo').textContent = State.settings.bkashNumber || 'Not set — contact admin';
+    if(State.settings.bkashInstruction){ document.getElementById('of_bkashInstruction').textContent = State.settings.bkashInstruction; }
+    Storefront.onDistrictChange();
 
     document.body.insertAdjacentHTML('beforeend', `
       <div class="pp-sticky-bar" id="ppStickyBar">
@@ -1692,17 +2619,34 @@ const Storefront = {
     ppState.qty = Math.min(max, Math.max(1, ppState.qty+delta));
     document.getElementById('ppQty').value = ppState.qty;
   },
+  onDistrictChange(){
+    const district = document.getElementById('of_district').value;
+    const thanas = BD_LOCATIONS[district] || [];
+    const thanaSel = document.getElementById('of_thana');
+    thanaSel.innerHTML = thanas.map(t=>`<option value="${UI.escapeHtml(t)}">${UI.escapeHtml(t)}</option>`).join('');
+    Storefront.updateTotal();
+  },
+  selectPayment(el, method){
+    ppState.paymentMethod = method;
+    document.querySelectorAll('#of_paymentPills .pp-pill').forEach(p=>p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('of_bkashBox').classList.toggle('hidden', method!=='bKash');
+  },
   openBuy(){
     document.getElementById('orderForm').reset();
-    Storefront.updateTotal();
-    document.getElementById('of_district').addEventListener('change', Storefront.updateTotal);
+    ppState.paymentMethod = 'COD';
+    document.querySelectorAll('#of_paymentPills .pp-pill').forEach(p=>p.classList.remove('active'));
+    document.querySelector('#of_paymentPills .pp-pill[data-pay="COD"]').classList.add('active');
+    document.getElementById('of_bkashBox').classList.add('hidden');
+    Storefront.onDistrictChange();
     UI.openModal('buyModal');
   },
   updateTotal(){
     const p = ppState.product;
     const variantExtra = (p.variants||[]).find(v=>v.value===ppState.selectedVariant)?.extra || 0;
     const unit = Products.finalPrice(p) + Number(variantExtra);
-    const shipping = (document.getElementById('of_district').value === (State.settings.districts?.[0]||'Dhaka')) ? (State.settings.shipInside||0) : (State.settings.shipOutside||0);
+    const district = document.getElementById('of_district').value;
+    const shipping = (district === 'Dhaka') ? (State.settings.shipInside||0) : (State.settings.shipOutside||0);
     const total = (unit * ppState.qty) + Number(shipping);
     document.getElementById('of_total').textContent = UI.money(total);
   },
@@ -1710,29 +2654,41 @@ const Storefront = {
     const name = document.getElementById('of_name').value.trim();
     const phone = document.getElementById('of_phone').value.trim();
     const district = document.getElementById('of_district').value;
+    const thana = document.getElementById('of_thana').value;
     const address = document.getElementById('of_address').value.trim();
-    if(!name || !phone || !district || !address){ UI.toast('Please fill all required fields','error'); return; }
+    if(!name || !phone || !district || !thana || !address){ UI.toast('Please fill all required fields','error'); return; }
+
+    let bkashNumber = '', bkashTrxId = '';
+    if(ppState.paymentMethod==='bKash'){
+      bkashNumber = document.getElementById('of_bkashNumber').value.trim();
+      bkashTrxId = document.getElementById('of_bkashTrxId').value.trim();
+      if(!bkashNumber || !bkashTrxId){ UI.toast('Please enter your bKash number and Transaction ID','error'); return; }
+    }
 
     const p = ppState.product;
     const variantExtra = (p.variants||[]).find(v=>v.value===ppState.selectedVariant)?.extra || 0;
     const unit = Products.finalPrice(p) + Number(variantExtra);
-    const shipping = (district === (State.settings.districts?.[0]||'Dhaka')) ? (State.settings.shipInside||0) : (State.settings.shipOutside||0);
+    const shipping = (district === 'Dhaka') ? (State.settings.shipInside||0) : (State.settings.shipOutside||0);
     const total = (unit * ppState.qty) + Number(shipping);
 
+    const orderRef = db.ref('orders').push();
+    const orderId = orderRef.key;
     const order = {
-      customerName:name, phone, district, address,
+      customerName:name, phone, district, thana, address,
       note: document.getElementById('of_note').value.trim(),
       productId: ppState.id, productName: p.name, productSlug: p.slug,
       variant: ppState.selectedVariant || '', qty: ppState.qty,
       unitPrice: unit, shipping, total,
-      status:'Pending', createdAt: Date.now()
+      paymentMethod: ppState.paymentMethod, bkashNumber, bkashTrxId,
+      status:'Pending', createdAt: Date.now(),
+      barcode: orderId
     };
 
     const btn = document.getElementById('of_submitBtn');
     btn.disabled = true;
     UI.loading(true,'Placing your order…');
     try{
-      await db.ref('orders').push(order);
+      await orderRef.set(order);
       const newStock = Math.max(0, Number(p.stock) - ppState.qty);
       await db.ref('products/'+ppState.id).update({ stock:newStock, sold:(Number(p.sold)||0)+ppState.qty });
       UI.loading(false);
@@ -1746,11 +2702,11 @@ const Storefront = {
     }
   }
 };
-document.getElementById('of_district')?.addEventListener('change', Storefront.updateTotal);
 
 /* ================================================================================
    BOOT
 ================================================================================ */
+UI.initTheme();
 Router.init();
 </script>
 </body>
