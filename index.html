@@ -8,79 +8,87 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="icon" id="faviconLink">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js';"></script>
 <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
 
 <style>
 /* ============================= TOKENS ============================= */
 :root{
-  --blue-900:#0B2A6B;
-  --blue-800:#123B96;
-  --blue-700:#1D4ED8;
-  --blue-600:#2563EB;
-  --blue-500:#3B82F6;
-  --blue-300:#93C5FD;
-  --blue-100:#DBEAFE;
-  --blue-50:#EFF6FF;
-  --bg:#F3F7FD;
+  /* Professional slate + indigo system — restrained, high-contrast, business-grade.
+     One clear accent (indigo) instead of multi-color gradients/glow everywhere. */
+  --blue-900:#0F172A;
+  --blue-800:#1E293B;
+  --blue-700:#4338CA;
+  --blue-600:#4F46E5;
+  --blue-500:#6366F1;
+  --blue-300:#A5B4FC;
+  --blue-100:#E0E7FF;
+  --blue-50:#EEF2FF;
+  --accent2:#DB2777;
+  --accent2-dark:#BE185D;
+  --bg:#F8FAFC;
   --surface:#FFFFFF;
-  --surface-2:#F8FAFE;
-  --ink:#0F1B33;
-  --ink-soft:#334063;
-  --muted:#66738F;
-  --border:#E3E9F5;
-  --border-soft:#EEF2FA;
+  --surface-2:#F1F5F9;
+  --ink:#0F172A;
+  --ink-soft:#334155;
+  --muted:#64748B;
+  --border:#E2E8F0;
+  --border-soft:#EEF2F6;
   --success:#0EA05A;
   --success-bg:#E7F8EF;
   --warning:#B4740E;
   --warning-bg:#FDF3DF;
   --danger:#D5372E;
   --danger-bg:#FCEAE9;
-  --info-bg:#E9EFFD;
+  --info-bg:#EEF2FF;
   --radius-sm:8px;
-  --radius:14px;
-  --radius-lg:20px;
-  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
-  --shadow:0 2px 4px rgba(16,36,90,.04), 0 12px 28px -8px rgba(16,36,90,.14);
-  --shadow-lg:0 20px 44px -12px rgba(16,36,90,.28);
+  --radius:12px;
+  --radius-lg:16px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.05);
+  --shadow:0 1px 3px rgba(15,23,42,.05), 0 8px 20px -8px rgba(15,23,42,.12);
+  --shadow-lg:0 16px 36px -12px rgba(15,23,42,.22);
   --font-display:'Sora',sans-serif;
   --font-body:'Inter',sans-serif;
   --font-mono:'JetBrains Mono',monospace;
+
 }
 /* Dark mode — toggled via [data-theme="dark"] on <html> */
 html[data-theme="dark"]{
-  --blue-300:#5C8DEA;
-  --blue-100:#1B2C4C;
-  --blue-50:#16213A;
+  --blue-300:#818CF8;
+  --blue-100:#1E2352;
+  --blue-50:#181B3D;
+  --accent2:#F472B6;
+  --accent2-dark:#DB2777;
   --bg:#0B1220;
-  --surface:#121B2E;
+  --surface:#121A2E;
   --surface-2:#182236;
-  --ink:#EAF0FB;
-  --ink-soft:#C4D0E8;
-  --muted:#8695B7;
-  --border:#233250;
-  --border-soft:#1B2740;
+  --ink:#EEF2FB;
+  --ink-soft:#C7D0E3;
+  --muted:#8996B4;
+  --border:#26324A;
+  --border-soft:#1D2739;
   --success-bg:#0E2E22;
   --warning-bg:#332208;
   --danger-bg:#3A1616;
-  --info-bg:#16213A;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
-  --shadow:0 2px 4px rgba(0,0,0,.25), 0 12px 28px -8px rgba(0,0,0,.45);
-  --shadow-lg:0 20px 44px -12px rgba(0,0,0,.6);
+  --info-bg:#1E2352;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+  --shadow:0 2px 4px rgba(0,0,0,.3), 0 12px 28px -8px rgba(0,0,0,.5);
+  --shadow-lg:0 20px 44px -12px rgba(0,0,0,.65);
 }
 html[data-theme="dark"] .login-error,
-html[data-theme="dark"] .preview-card .pimg{background:#1B2740;}
-html[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#2B3B5C;}
-html[data-theme="dark"] #loadingOverlay{background:rgba(11,18,32,.85);}
+html[data-theme="dark"] .preview-card .pimg{background:#241D48;}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#3A2F68;}
+html[data-theme="dark"] #loadingOverlay{background:rgba(16,11,36,.88);}
 html[data-theme="dark"] .thumb,
 html[data-theme="dark"] .pp-gallery-main,
-html[data-theme="dark"] .pv_img{background:#1B2740;}
-html[data-theme="dark"] .badge-gray{background:#233250;color:#B8C4E0;}
-html[data-theme="dark"] .badge-teal{background:#0E2E2A;color:#3ED9C4;}
+html[data-theme="dark"] .pv_img{background:#241D48;}
+html[data-theme="dark"] .badge-gray{background:#332A5E;color:#C9BFE8;}
+html[data-theme="dark"] .badge-teal{background:#123330;color:#4FE3CC;}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;width:100%;overflow-x:hidden;}
 body{
@@ -104,30 +112,45 @@ input,select,textarea{font-family:inherit;}
 ::-webkit-scrollbar-track{background:transparent;}
 :focus-visible{outline:2px solid var(--blue-500);outline-offset:2px;border-radius:6px;}
 .hidden{display:none !important;}
+/* Horizontal-scroll strip: used instead of flex-wrap on mobile for chip/pill/button rows —
+   keeps a single tidy line that scrolls rather than wrapping into a messy multi-row block. */
+.scroll-x{
+  display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;scrollbar-width:none;-ms-overflow-style:none;
+}
+.scroll-x::-webkit-scrollbar{display:none;}
+.scroll-x > *{flex-shrink:0;}
+button,.btn,.btn-icon,.nav-item,.chip-tab,.pp-pill{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important;}}
 
 /* ============================= UTILITIES ============================= */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:10px 16px;border-radius:10px;border:1px solid transparent;
+  padding:9px 16px;border-radius:9px;border:1px solid transparent;
   font-weight:600;font-size:13.5px;transition:.15s ease;white-space:nowrap;
 }
 .btn:active{transform:translateY(1px);}
-.btn-primary{background:linear-gradient(180deg,var(--blue-600),var(--blue-700));color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.15) inset,0 6px 14px -6px rgba(37,99,235,.55);}
-.btn-primary:hover{filter:brightness(1.06);}
+.btn-primary{
+  background:var(--blue-600);color:#fff;
+  box-shadow:0 1px 2px rgba(15,23,42,.08),0 1px 0 rgba(255,255,255,.08) inset;
+}
+.btn-primary:hover{background:var(--blue-700);box-shadow:0 4px 10px -4px rgba(79,70,229,.45);}
 .btn-secondary{background:var(--surface);color:var(--ink-soft);border-color:var(--border);}
 .btn-secondary:hover{background:var(--surface-2);border-color:var(--blue-300);}
 .btn-ghost{background:transparent;color:var(--muted);}
 .btn-ghost:hover{background:var(--surface-2);color:var(--ink);}
 .btn-danger{background:var(--danger-bg);color:var(--danger);}
 .btn-danger:hover{filter:brightness(0.97);}
-.btn-sm{padding:6px 11px;font-size:12.5px;border-radius:8px;}
-.btn-icon{width:36px;height:36px;padding:0;border-radius:9px;}
+.btn-sm{padding:6px 12px;font-size:12.5px;border-radius:7px;}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:8px;}
 .btn:disabled{opacity:.55;cursor:not-allowed;}
 .btn-block{width:100%;}
 
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease;}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;letter-spacing:.2px;}
+/* Base shape for icon-badge circles (e.g. class="ic badge-blue") — width/height are
+   set per context (stat-card, category tile, list rows) and override the default here. */
+.ic{display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;width:36px;height:36px;}
 .badge-blue{background:var(--info-bg);color:var(--blue-700);}
 .badge-green{background:var(--success-bg);color:var(--success);}
 .badge-amber{background:var(--warning-bg);color:var(--warning);}
@@ -142,6 +165,7 @@ input,select,textarea{font-family:inherit;}
   width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;
   font-size:13.5px;background:var(--surface);color:var(--ink);transition:.15s;
 }
+.input:hover,.select:hover,.textarea:hover{border-color:var(--blue-300);}
 .input:focus,.select:focus,.textarea:focus{border-color:var(--blue-500);box-shadow:0 0 0 4px var(--blue-100);}
 .textarea{resize:vertical;min-height:90px;}
 .input-group{display:flex;align-items:stretch;}
@@ -238,15 +262,12 @@ input,select,textarea{font-family:inherit;}
 /* ============================= LOGIN ============================= */
 #loginScreen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
-  background:
-    radial-gradient(1100px 500px at 15% -10%, #DCE8FF 0%, transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, #E3EEFF 0%, transparent 55%),
-    var(--bg);
+  background:var(--bg);
   position:relative;overflow:hidden;
 }
 .login-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:34px 30px;position:relative;z-index:2;}
 .login-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
-.login-brand .mark{width:40px;height:40px;border-radius:11px;background:linear-gradient(140deg,var(--blue-500),var(--blue-800));display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;box-shadow:0 8px 18px -6px rgba(29,78,216,.55);}
+.login-brand .mark{width:40px;height:40px;border-radius:11px;background:var(--blue-600);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;}
 .login-brand .name{font-family:var(--font-display);font-weight:700;font-size:17px;}
 .login-brand .name small{display:block;font-family:var(--font-body);font-weight:500;font-size:11px;color:var(--muted);}
 .login-card h1{font-size:21px;margin:0 0 4px;}
@@ -260,25 +281,112 @@ input,select,textarea{font-family:inherit;}
 /* ============================= ADMIN SHELL ============================= */
 #adminShell{display:flex;min-height:100vh;}
 .sidebar{
-  width:250px;flex-shrink:0;background:linear-gradient(185deg,var(--blue-900),#0A1E4E 75%);
-  color:#DCE6FF;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:500;
-  transition:transform .25s ease;
+  width:250px;flex-shrink:0;background:var(--blue-900);
+  color:#CBD5E1;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:500;
+  transition:transform .25s ease,width .2s ease;border-right:1px solid rgba(255,255,255,.06);
 }
 .sidebar-brand{display:flex;align-items:center;gap:11px;padding:22px 20px 18px;}
-.sidebar-brand .mark{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;}
-.sidebar-brand .name{font-family:var(--font-display);font-weight:700;color:#fff;font-size:15.5px;}
-.sidebar-brand .name small{display:block;font-family:var(--font-body);font-weight:500;font-size:10.5px;color:#8FA6DE;}
+.sidebar-brand .mark{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+.sidebar-brand .name{font-family:var(--font-display);font-weight:700;color:#fff;font-size:15px;}
+.sidebar-brand .name small{display:block;font-family:var(--font-body);font-weight:500;font-size:10.5px;color:#8291AC;}
 .sidebar-nav{flex:1;overflow-y:auto;padding:10px 12px;}
 .nav-item{
-  display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:10px;margin-bottom:3px;
-  font-size:13.5px;font-weight:600;color:#B7C6EE;position:relative;transition:.15s;
+  display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;margin-bottom:2px;
+  font-size:13.5px;font-weight:600;color:#94A3B8;position:relative;transition:.15s;
 }
-.nav-item i{width:18px;text-align:center;font-size:14.5px;}
+.nav-item i{width:18px;text-align:center;font-size:14px;transition:color .15s ease;}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
-.nav-item.active{background:rgba(255,255,255,.13);color:#fff;}
-.nav-item.active::before{content:'';position:absolute;left:-12px;top:8px;bottom:8px;width:3px;background:var(--blue-300);border-radius:0 4px 4px 0;}
-.nav-item .count{margin-left:auto;background:rgba(255,255,255,.12);font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;}
-.sidebar-foot{padding:14px 16px 18px;border-top:1px solid rgba(255,255,255,.09);}
+.nav-item.active{background:var(--blue-600);color:#fff;}
+.nav-item.active i{color:#fff;}
+.nav-item.active::before{content:'';position:absolute;left:-12px;top:8px;bottom:8px;width:3px;background:var(--blue-500);border-radius:0 4px 4px 0;}
+.nav-item .count{margin-left:auto;background:rgba(255,255,255,.1);font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;}
+.sidebar-foot{padding:14px 16px 18px;border-top:1px solid rgba(255,255,255,.09);position:relative;}
+.sidebar-collapse-btn{
+  display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;
+  background:var(--blue-500);color:#fff;border:2px solid var(--blue-900);position:absolute;top:-13px;right:14px;
+  font-size:11px;cursor:pointer;transition:.15s ease;
+}
+.sidebar-collapse-btn:hover{background:var(--blue-300);transform:scale(1.08);}
+/* Collapsed (icon-only) desktop sidebar — a compact rail that saves horizontal space
+   without losing navigation; labels hide, icons + tooltips (title attr) remain. */
+.sidebar.collapsed{width:74px;}
+.sidebar.collapsed ~ .main-col{margin-left:74px;}
+.sidebar.collapsed .sidebar-brand{justify-content:center;padding:22px 8px 18px;}
+.sidebar.collapsed .sidebar-brand .name{display:none;}
+.sidebar.collapsed .nav-item{justify-content:center;padding:11px 8px;}
+.sidebar.collapsed .nav-label,.sidebar.collapsed .nav-item .count{display:none;}
+.sidebar.collapsed .nav-item.active::before{left:-8px;}
+.sidebar.collapsed .admin-chip{justify-content:center;}
+.sidebar.collapsed .admin-chip .who,.sidebar.collapsed .admin-chip button{display:none;}
+.sidebar.collapsed .sidebar-collapse-btn i{transform:rotate(180deg);}
+@media(max-width:980px){.sidebar-collapse-btn{display:none;}}
+
+/* Back-to-top floating button — appears once the page has scrolled a bit */
+.scroll-top-btn{
+  position:fixed;right:22px;bottom:22px;width:44px;height:44px;border-radius:50%;
+  background:var(--blue-600);color:#fff;border:none;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;
+  z-index:300;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s ease;
+}
+.scroll-top-btn.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+.scroll-top-btn:hover{background:var(--blue-700);transform:translateY(-2px);}
+@media(max-width:800px){.scroll-top-btn{bottom:calc(78px + env(safe-area-inset-bottom));right:16px;width:40px;height:40px;}}
+/* ---------- Mobile Floating Action Button (contextual quick action) ---------- */
+.fab-btn{
+  position:fixed;left:16px;bottom:calc(18px + env(safe-area-inset-bottom));
+  display:none;align-items:center;gap:8px;height:50px;padding:0 20px 0 18px;
+  border-radius:26px;border:none;background:var(--blue-600);color:#fff;
+  font-family:var(--font-body);font-weight:700;font-size:13.5px;letter-spacing:.1px;
+  box-shadow:var(--shadow-lg);z-index:300;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:transform .15s ease,background .15s ease,opacity .15s ease;
+}
+.fab-btn i{font-size:15px;}
+.fab-btn:active{transform:scale(.93);background:var(--blue-700);}
+@media(max-width:768px){
+  .fab-btn.fab-visible{display:inline-flex;animation:fabIn .18s ease;}
+}
+@keyframes fabIn{from{opacity:0;transform:translateY(10px) scale(.9);}to{opacity:1;transform:translateY(0) scale(1);}}
+.fab-btn.hidden{display:none !important;}
+
+/* ---------- Swipe-to-reveal row actions (mobile card rows) ----------
+   .swipe-content stays `display:contents` at every width except phone —
+   that makes the wrapper invisible to the table layout algorithm, so the
+   real <td> cells inside it still lay out exactly as if they were direct
+   children of <tr> on desktop. .swipe-actions is fully hidden until the
+   phone breakpoint. Nothing here can affect desktop/tablet rendering. */
+.swipe-content{display:contents;}
+.swipe-actions{display:none;}
+@media(max-width:680px){
+  .table-wrap{overflow:visible;}
+  tbody tr.swipe-row{
+    overflow:hidden;position:relative;padding:0 !important;
+    touch-action:pan-y;
+  }
+  tbody tr.swipe-row .swipe-content{
+    position:relative;background:var(--surface);transition:transform .18s ease;
+    display:block;will-change:transform;z-index:1;
+  }
+  tbody tr.swipe-row.dragging .swipe-content{transition:none;}
+  tbody tr.swipe-row .swipe-actions{
+    position:absolute;top:0;right:0;bottom:0;display:flex;align-items:stretch;
+    height:100%;z-index:0;
+  }
+  tbody tr.swipe-row .swipe-actions button{
+    border:none;color:#fff;width:72px;font-size:16px;display:flex;
+    align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+    -webkit-tap-highlight-color:transparent;
+  }
+  tbody tr.swipe-row .swipe-actions .sa-edit{background:var(--blue-600);}
+  tbody tr.swipe-row .swipe-actions .sa-delete{background:var(--danger);}
+  /* One-time nudge on the very first card so people discover the swipe gesture */
+  tbody tr.swipe-row.swipe-hint .swipe-content{animation:swipeHintPeek 1.1s ease .35s 1;}
+}
+@keyframes swipeHintPeek{
+  0%{transform:translateX(0);}
+  35%{transform:translateX(-46px);}
+  65%{transform:translateX(-46px);}
+  100%{transform:translateX(0);}
+}
 .admin-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;}
 .admin-chip .av{width:34px;height:34px;border-radius:9px;background:var(--blue-500);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;}
 .admin-chip .who{flex:1;min-width:0;}
@@ -287,18 +395,25 @@ input,select,textarea{font-family:inherit;}
 .admin-chip button{background:none;border:none;color:#8FA6DE;font-size:14px;padding:6px;}
 .admin-chip button:hover{color:#fff;}
 
-.main-col{flex:1;margin-left:250px;display:flex;flex-direction:column;min-height:100vh;}
+.main-col{flex:1;margin-left:250px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .2s ease;}
 .topbar{
-  position:sticky;top:0;z-index:400;background:rgba(243,247,253,.85);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:400;background:var(--surface);
   display:flex;align-items:center;gap:14px;padding:14px 26px;border-bottom:1px solid var(--border);
 }
 .hamburger{display:none;background:var(--surface);border:1px solid var(--border);width:38px;height:38px;border-radius:10px;align-items:center;justify-content:center;color:var(--ink-soft);}
 .topbar-search{flex:1;max-width:360px;position:relative;}
 .topbar-search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;}
-.topbar-search input{width:100%;padding:9px 12px 9px 34px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;}
+.topbar-search input{width:100%;padding:9px 30px 9px 34px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;}
 .topbar-search input:focus{border-color:var(--blue-500);box-shadow:0 0 0 4px var(--blue-100);}
+.search-kbd{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);
+  font-size:11px;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);
+  border-radius:5px;padding:1px 6px;pointer-events:none;
+}
+.topbar-search input:focus ~ .search-kbd{display:none;}
+@media(max-width:680px){.search-kbd{display:none;}}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
-.page-title{margin:0 0 4px;font-size:22px;}
+.page-title{margin:0 0 4px;font-size:21px;font-family:var(--font-display);font-weight:700;color:var(--ink);letter-spacing:-.2px;}
 .page-sub{margin:0;color:var(--muted);font-size:13px;}
 
 .view{padding:24px 26px 60px;display:none;}
@@ -310,10 +425,20 @@ input,select,textarea{font-family:inherit;}
 @media(max-width:980px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:560px){.stat-grid{grid-template-columns:1fr;}}
 .stat-card{padding:18px 20px;position:relative;overflow:hidden;}
-.stat-card .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:14px;}
+.stat-card:hover{box-shadow:var(--shadow);border-color:var(--border);}
+.stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--blue-500));}
+.stat-card .ic{width:38px;height:38px;font-size:15px;margin-bottom:14px;}
 .stat-card .val{font-family:var(--font-display);font-size:24px;font-weight:700;}
 .stat-card .lbl{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px;}
 .stat-card .delta{font-size:11.5px;font-weight:700;margin-top:8px;display:flex;align-items:center;gap:4px;}
+.stat-card:has(.badge-blue){--accent:var(--blue-500);}
+.stat-card:has(.badge-green){--accent:var(--success);}
+.stat-card:has(.badge-amber){--accent:var(--warning);}
+.stat-card:has(.badge-red){--accent:var(--danger);}
+/* Fixed 3-up variant (used by Analytics' range summary) instead of the default 4-column
+   grid, so 3 cards fill the row evenly rather than leaving an empty trailing column. */
+.stat-grid.stat-grid-3{grid-template-columns:repeat(3,1fr);}
+@media(max-width:560px){.stat-grid.stat-grid-3{grid-template-columns:1fr;}}
 .delta.up{color:var(--success);} .delta.down{color:var(--danger);}
 
 /* tables */
@@ -348,7 +473,9 @@ table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
   tbody td:has(.row-actions)::before{content:none;}
   tbody td:has(.row-actions){justify-content:flex-end;}
   .row-actions{flex-wrap:wrap;justify-content:flex-end;}
-  .url-cell{max-width:170px;}
+  /* The Product URL row is redundant on a phone card — the copy/open icon buttons
+     already cover it, and the full URL text just eats space. */
+  #productsTableBody td[data-label="URL"]{display:none;}
   .status-select{max-width:150px;}
   tbody tr{position:relative;padding-right:6px;}
   tbody td.td-checkbox{position:absolute;top:10px;right:10px;padding:0;border:none;background:transparent;z-index:1;}
@@ -374,9 +501,10 @@ table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
   #ordersTableBody .ms-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 }
 .mobile-summary{display:none;}
-thead th{text-align:left;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th{text-align:left;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:var(--surface-2);border-bottom:1.5px solid var(--border);white-space:nowrap;}
 tbody td{padding:13px 16px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
 tbody tr:last-child td{border-bottom:none;}
+tbody tr{transition:background .12s ease;}
 tbody tr:hover{background:var(--surface-2);}
 .cell-flex{display:flex;align-items:center;gap:10px;}
 .thumb{width:42px;height:42px;border-radius:9px;object-fit:cover;background:var(--surface-2);border:1px solid var(--border-soft);flex-shrink:0;}
@@ -390,7 +518,8 @@ tbody tr:hover{background:var(--surface-2);}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
 .toolbar .input,.toolbar .select{width:auto;}
 .chip-tabs{display:flex;gap:6px;flex-wrap:wrap;}
-.chip-tab{padding:7px 13px;border-radius:99px;font-size:12px;font-weight:700;background:var(--surface);border:1.5px solid var(--border);color:var(--muted);}
+.chip-tab{padding:7px 13px;border-radius:99px;font-size:12px;font-weight:700;background:var(--surface);border:1.5px solid var(--border);color:var(--muted);transition:.15s ease;cursor:pointer;}
+.chip-tab:hover{border-color:var(--blue-300);color:var(--ink-soft);}
 .chip-tab.active{background:var(--blue-600);border-color:var(--blue-600);color:#fff;}
 
 /* product editor */
@@ -425,6 +554,14 @@ tbody tr:hover{background:var(--surface-2);}
 .section-title:first-child{margin-top:0;}
 .section-title i{color:var(--blue-500);width:16px;}
 
+/* category tiles */
+.cat-card{padding:16px;transition:.15s;}
+.cat-card:hover{border-color:var(--blue-300);box-shadow:var(--shadow);}
+.cat-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;}
+.cat-card-top .ic{width:40px;height:40px;flex-shrink:0;}
+.cat-card-name{font-weight:700;font-size:13.5px;font-family:var(--font-display);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cat-card-count{font-size:11.5px;color:var(--muted);margin-top:2px;}
+
 .slug-box{display:flex;align-items:center;gap:8px;background:var(--info-bg);border-radius:10px;padding:9px 12px;font-size:12px;}
 .slug-box .url{flex:1;color:var(--blue-700);font-family:var(--font-mono);overflow-x:auto;white-space:nowrap;}
 .url-cell{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11.5px;color:var(--blue-700);background:var(--info-bg);padding:4px 9px;border-radius:7px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -454,6 +591,17 @@ tbody tr:hover{background:var(--surface-2);}
 
 /* settings */
 .settings-nav{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}
+.logo-upload-row{display:flex;align-items:center;gap:18px;margin-bottom:22px;flex-wrap:wrap;}
+.logo-preview{
+  width:78px;height:78px;border-radius:16px;flex-shrink:0;overflow:hidden;
+  background:var(--surface-2);border:1.5px dashed var(--border);
+  display:flex;align-items:center;justify-content:center;color:var(--blue-500);font-size:24px;
+}
+.logo-preview.has-logo{border-style:solid;border-color:var(--border);}
+.logo-preview img{width:100%;height:100%;object-fit:contain;background:#fff;}
+.logo-upload-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:200px;}
+.logo-upload-actions .hint{flex-basis:100%;margin:4px 0 0;}
 
 /* ============================= PUBLIC PRODUCT PAGE ============================= */
 #publicPage{min-height:100vh;background:var(--bg);}
@@ -511,6 +659,24 @@ tbody tr:hover{background:var(--surface-2);}
 .pp-sticky-bar .price b{display:block;font-family:var(--font-mono);color:var(--blue-700);font-size:16px;}
 .pp-sticky-bar .price span{font-size:10px;color:var(--muted);}
 
+/* ============================= MOBILE POLISH ============================= */
+/* Rows of chips/pills/tabs/buttons scroll horizontally on small screens instead
+   of wrapping onto extra lines — keeps every view compact and tidy on a phone. */
+@media(max-width:680px){
+  .chip-tabs,.settings-nav,.pp-variant-pills,.pp-trust,.img-strip,.toolbar,.pp-badges{
+    flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;scrollbar-width:none;-ms-overflow-style:none;
+    padding-bottom:2px;
+  }
+  .chip-tabs::-webkit-scrollbar,.settings-nav::-webkit-scrollbar,.pp-variant-pills::-webkit-scrollbar,
+  .pp-trust::-webkit-scrollbar,.img-strip::-webkit-scrollbar,.toolbar::-webkit-scrollbar,
+  .pp-badges::-webkit-scrollbar{display:none;}
+  .chip-tabs > *,.settings-nav > *,.pp-variant-pills > *,.pp-trust > *,.img-strip > *,.pp-badges > *{flex-shrink:0;}
+  .toolbar{margin-left:-2px;padding-left:2px;margin-right:-2px;}
+  .toolbar > .input,.toolbar > .select{flex-shrink:0;width:auto;min-width:170px;}
+  .toolbar > .btn,.toolbar > .scan-btn{flex-shrink:0;}
+}
+
 /* responsive shell */
 @media(max-width:980px){
   .sidebar{transform:translateX(-100%);}
@@ -526,6 +692,76 @@ tbody tr:hover{background:var(--surface-2);}
   .view{padding:18px 14px 60px;}
   .topbar{padding:12px 14px;}
   .modal-body,.modal-head,.modal-foot{padding-left:16px;padding-right:16px;}
+  .page-title{font-size:19px;}
+  .pp-name{font-size:20px;}
+  .login-card{padding:28px 22px;}
+  /* Modal actions become full-width stacked buttons — easier to tap accurately
+     than a cramped right-aligned row, and reads cleaner on a narrow screen. */
+  .modal-foot{flex-direction:column-reverse;align-items:stretch;}
+  .modal-foot .btn{width:100%;}
+  .ob-grid{grid-template-columns:repeat(auto-fill,minmax(44%,1fr));}
+}
+
+/* Safe-area padding so fixed UI never sits under a notch or the home indicator */
+.sidebar{padding-left:env(safe-area-inset-left);}
+.pp-sticky-bar{padding-bottom:calc(10px + env(safe-area-inset-bottom));}
+@media(max-width:768px){
+  .modal{padding-bottom:env(safe-area-inset-bottom);}
+}
+@media(max-width:980px){
+  .sidebar-scrim{-webkit-tap-highlight-color:transparent;}
+}
+@media(max-width:680px){
+  /* Slightly larger tap targets for icon buttons once a mouse cursor is no longer a given */
+  .btn-icon{width:38px;height:38px;}
+  .row-actions{gap:8px;}
+  .qty-stepper button{width:40px;}
+  .status-select{min-height:38px;}
+  .chip-tab{padding:8px 14px;}
+}
+
+/* ============================= CARDS & BUTTONS — MOBILE ============================= */
+@media(max-width:680px){
+  /* Regular buttons get a touch-friendly bump: taller, easy to hit accurately —
+     border-radius stays inherited (pill / circle) to match the rest of the UI. */
+  .btn{padding:11px 20px;font-size:14px;}
+  .btn-sm{padding:8px 15px;font-size:12.5px;}
+
+  /* A view's primary action (Add Product, Export CSV…) drops below the title and
+     goes full-width — reads like a clear, tappable call-to-action instead of a
+     squeezed button fighting the heading for space. */
+  .view-head{flex-direction:column;align-items:stretch;gap:12px;}
+  .view-head > .btn{width:100%;}
+
+  /* Tighter, denser gaps between cards so grids feel like a native app list
+     rather than a desktop layout that's simply been narrowed. */
+  .grid-2,.grid-3,#categoriesGrid{gap:10px;}
+  .card{border-radius:12px;}
+}
+
+@media(max-width:560px){
+  /* Stat tiles become a compact 2-up grid instead of one full-width bar per
+     stat — a much more "dashboard" feel on a phone and less scrolling. */
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .stat-card{padding:14px 15px;}
+  .stat-card .ic{width:32px;height:32px;font-size:13px;margin-bottom:10px;}
+  .stat-card .val{font-size:19px;}
+  .stat-card .lbl{font-size:11px;}
+  .stat-card .delta{font-size:11px;margin-top:6px;}
+}
+@media(max-width:380px){
+  .stat-grid{grid-template-columns:1fr;}
+}
+
+@media(max-width:640px){
+  /* Category tiles: two compact cards per row instead of one wide row each —
+     shows more of the catalog at a glance without feeling cramped. */
+  #categoriesGrid{grid-template-columns:repeat(2,1fr);}
+  .cat-card{padding:13px;}
+  .cat-card .ic{width:32px;height:32px;font-size:13px;}
+}
+@media(max-width:400px){
+  #categoriesGrid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -559,8 +795,8 @@ tbody tr:hover{background:var(--surface-2);}
 <div id="loginScreen" class="hidden">
   <div class="login-card">
     <div class="login-brand">
-      <div class="mark"><i class="fa-solid fa-cube"></i></div>
-      <div class="name">Nova Admin<small>Commerce Console</small></div>
+      <div class="mark" id="loginBrandMark"><i class="fa-solid fa-cube"></i></div>
+      <div class="name" id="loginBrandName">Nova Admin<small>Commerce Console</small></div>
     </div>
     <h1>Welcome back</h1>
     <p class="sub">Sign in with your admin account to continue.</p>
@@ -591,20 +827,21 @@ tbody tr:hover{background:var(--surface-2);}
   <div class="sidebar-scrim" id="sidebarScrim" onclick="UI.closeSidebar()"></div>
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <div class="mark"><i class="fa-solid fa-cube"></i></div>
-      <div class="name">Nova Admin<small>Commerce Console</small></div>
+      <div class="mark" id="sidebarBrandMark"><i class="fa-solid fa-cube"></i></div>
+      <div class="name" id="sidebarBrandName">Nova Admin<small>Commerce Console</small></div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-item active" data-view="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</div>
-      <div class="nav-item" data-view="products"><i class="fa-solid fa-box-open"></i> Products <span class="count" id="navProductCount">0</span></div>
-      <div class="nav-item" data-view="orders"><i class="fa-solid fa-receipt"></i> Orders <span class="count" id="navOrderCount">0</span></div>
-      <div class="nav-item" data-view="orderbarcode"><i class="fa-solid fa-barcode"></i> Order Barcode</div>
-      <div class="nav-item" data-view="customers"><i class="fa-solid fa-users"></i> Customers</div>
-      <div class="nav-item" data-view="categories"><i class="fa-solid fa-tags"></i> Categories</div>
-      <div class="nav-item" data-view="analytics"><i class="fa-solid fa-chart-line"></i> Analytics</div>
-      <div class="nav-item" data-view="settings"><i class="fa-solid fa-gear"></i> Settings</div>
+      <div class="nav-item active" data-view="dashboard" title="Dashboard"><i class="fa-solid fa-gauge-high"></i> <span class="nav-label">Dashboard</span></div>
+      <div class="nav-item" data-view="products" title="Products"><i class="fa-solid fa-box-open"></i> <span class="nav-label">Products</span> <span class="count" id="navProductCount">0</span></div>
+      <div class="nav-item" data-view="orders" title="Orders"><i class="fa-solid fa-receipt"></i> <span class="nav-label">Orders</span> <span class="count" id="navOrderCount">0</span></div>
+      <div class="nav-item" data-view="orderbarcode" title="Order Barcode"><i class="fa-solid fa-barcode"></i> <span class="nav-label">Order Barcode</span></div>
+      <div class="nav-item" data-view="customers" title="Customers"><i class="fa-solid fa-users"></i> <span class="nav-label">Customers</span></div>
+      <div class="nav-item" data-view="categories" title="Categories"><i class="fa-solid fa-tags"></i> <span class="nav-label">Categories</span></div>
+      <div class="nav-item" data-view="analytics" title="Analytics"><i class="fa-solid fa-chart-line"></i> <span class="nav-label">Analytics</span></div>
+      <div class="nav-item" data-view="settings" title="Settings"><i class="fa-solid fa-gear"></i> <span class="nav-label">Settings</span></div>
     </nav>
     <div class="sidebar-foot">
+      <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" onclick="UI.toggleSidebarCollapse()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button>
       <div class="admin-chip">
         <div class="av" id="adminAvatar">A</div>
         <div class="who"><b id="adminEmailLabel">admin@store.com</b><span>Administrator</span></div>
@@ -619,6 +856,7 @@ tbody tr:hover{background:var(--surface-2);}
       <div class="topbar-search">
         <i class="fa-solid fa-magnifying-glass"></i>
         <input type="text" id="globalSearch" placeholder="Search products, orders, customers…">
+        <kbd class="search-kbd">/</kbd>
       </div>
       <div class="topbar-right">
         <button class="btn btn-icon btn-secondary" id="themeToggleBtn" onclick="UI.toggleTheme()" title="Toggle dark mode"><i class="fa-solid fa-moon"></i></button>
@@ -799,7 +1037,7 @@ tbody tr:hover{background:var(--surface-2);}
         <div class="chip-tab" data-r="90">Last 90 Days</div>
         <div class="chip-tab" data-r="all">All Time</div>
       </div>
-      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-grid stat-grid-3">
         <div class="card stat-card"><div class="ic badge-blue"><i class="fa-solid fa-sack-dollar"></i></div><div class="val mono" id="anStatRevenue">৳0</div><div class="lbl">Revenue in range</div></div>
         <div class="card stat-card"><div class="ic badge-green"><i class="fa-solid fa-receipt"></i></div><div class="val" id="anStatOrders">0</div><div class="lbl">Orders in range</div></div>
         <div class="card stat-card"><div class="ic badge-amber"><i class="fa-solid fa-chart-simple"></i></div><div class="val mono" id="anStatAvg">৳0</div><div class="lbl">Avg. order value</div></div>
@@ -825,11 +1063,20 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
 
       <div id="settings-store" class="card" style="padding:22px;">
-        <div class="grid-2">
+        <div class="section-title" style="margin-top:0;"><i class="fa-solid fa-image"></i> Store Logo</div>
+        <div class="logo-upload-row">
+          <div class="logo-preview" id="setLogoPreview"><i class="fa-solid fa-cube"></i></div>
+          <div class="logo-upload-actions">
+            <input type="file" id="setLogoInput" accept="image/*" class="hidden" onchange="Settings.onLogoSelected(event)">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('setLogoInput').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Upload logo</button>
+            <button type="button" class="btn btn-ghost btn-sm hidden" id="setLogoRemoveBtn" onclick="Settings.removeLogo()"><i class="fa-solid fa-trash"></i> Remove</button>
+            <p class="hint">Square image works best, PNG with a transparent background is ideal. Shown on the login screen, sidebar and your storefront header. Saved once you click "Save Store Info".</p>
+          </div>
+        </div>
+        <div class="grid-3">
           <div class="field"><label>Store Name</label><input class="input" id="setStoreName" placeholder="Nova Store"></div>
           <div class="field"><label>Store Phone</label><input class="input" id="setStorePhone" placeholder="+880 1XXXXXXXXX"></div>
           <div class="field"><label>Currency Symbol</label><input class="input" id="setCurrency" placeholder="৳"></div>
-          <div class="field"><label>Store Logo URL</label><input class="input" id="setLogo" placeholder="https://…"></div>
         </div>
         <div class="field"><label>Store Address</label><textarea class="textarea" id="setAddress" style="min-height:60px;"></textarea></div>
         <button class="btn btn-primary" onclick="Settings.save('store')"><i class="fa-solid fa-check"></i> Save Store Info</button>
@@ -1100,11 +1347,14 @@ tbody tr:hover{background:var(--surface-2);}
 <!-- ============================= PUBLIC PRODUCT PAGE ============================= -->
 <div id="publicPage" class="hidden">
   <header class="pp-header">
-    <div class="mark"><i class="fa-solid fa-cube"></i></div>
+    <div class="mark" id="ppHeaderMark"><i class="fa-solid fa-cube"></i></div>
     <b id="pp_storeName">Nova Store</b>
   </header>
   <div class="pp-wrap" id="pp_content"></div>
 </div>
+
+<button id="scrollTopBtn" class="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+<button id="mobileFab" class="fab-btn" title="Quick action"><i class="fa-solid fa-plus"></i><span>Add</span></button>
 
 <script>
 /* ================================================================================
@@ -1219,10 +1469,37 @@ const State = {
   settings: {},
   currentEditingProductId: null,
   productImages: [],   // {url, path} for images already uploaded/queued for current editor session
+  logoData: '',         // staged base64 logo for the current settings-editor session
   variantCount: 0,
   productFilter: 'all',
   orderFilter: 'All',
-  selectedOrders: new Set()
+  selectedOrders: new Set(),
+  currentView: 'dashboard'
+};
+
+/* Applies the store logo + name wherever the brand appears: login screen, admin
+   sidebar, the public storefront header, and the browser tab favicon. Safe to call
+   before login (settings are publicly readable) or after, and with an empty logo
+   (falls back to the default cube mark). */
+const Branding = {
+  apply(s){
+    s = s || {};
+    const logo = s.logo || '';
+    const name = s.storeName || 'Nova Admin';
+    ['loginBrandMark','sidebarBrandMark','ppHeaderMark'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.innerHTML = logo ? `<img src="${logo}" alt="${name.replace(/"/g,'')} logo">` : '<i class="fa-solid fa-cube"></i>';
+    });
+    const loginName = document.getElementById('loginBrandName');
+    if(loginName && loginName.firstChild) loginName.firstChild.textContent = name;
+    const sideName = document.getElementById('sidebarBrandName');
+    if(sideName && sideName.firstChild) sideName.firstChild.textContent = name;
+    const ppName = document.getElementById('pp_storeName');
+    if(ppName) ppName.textContent = s.storeName || 'Nova Store';
+    const favicon = document.getElementById('faviconLink');
+    if(favicon && logo) favicon.href = logo;
+  }
 };
 
 /* ================================================================================
@@ -1307,6 +1584,24 @@ const UI = {
     if(!document.getElementById('sidebar').classList.contains('open')) return;
     document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarScrim').classList.remove('show'); UI.unlockScroll();
   },
+  // Desktop-only icon-rail mode for the sidebar — extra screen width for busy views
+  // like Products/Orders. Preference is remembered the same way the theme is.
+  toggleSidebarCollapse(){
+    const sidebar = document.getElementById('sidebar');
+    if(!sidebar) return;
+    const collapsed = sidebar.classList.toggle('collapsed');
+    const btn = document.getElementById('sidebarCollapseBtn');
+    if(btn) btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    try{ localStorage.setItem('nova_admin_sidebar_collapsed', collapsed ? '1' : '0'); }catch(e){}
+  },
+  initSidebarCollapse(){
+    let collapsed = false;
+    try{ collapsed = localStorage.getItem('nova_admin_sidebar_collapsed') === '1'; }catch(e){}
+    if(!collapsed) return;
+    document.getElementById('sidebar')?.classList.add('collapsed');
+    const btn = document.getElementById('sidebarCollapseBtn');
+    if(btn) btn.title = 'Expand sidebar';
+  },
   money(n){
     const sym = (State.settings.currency) || '৳';
     n = Number(n)||0;
@@ -1350,6 +1645,7 @@ const Router = {
     document.querySelector(`.nav-item[data-view="${viewName}"]`)?.classList.add('active');
     if(viewName==='analytics') Analytics.render();
     if(viewName==='orderbarcode') OrderBarcode.render();
+    MobileFab.update(viewName);
   }
 };
 
@@ -1473,7 +1769,7 @@ const Data = {
     db.ref('products').on('value', snap=>{ State.products = snap.val() || {}; Products.render(); Dashboard.render(); Analytics.renderIfActive(); });
     db.ref('orders').on('value', snap=>{ State.orders = snap.val() || {}; Orders.render(); Customers.deriveAndRender(); Dashboard.render(); Analytics.renderIfActive(); OrderBarcode.renderIfActive(); });
     db.ref('categories').on('value', snap=>{ State.categories = snap.val() || {}; Categories.render(); Products.populateCategoryOptions(); Analytics.renderIfActive(); });
-    db.ref('settings').once('value').then(snap=>{ State.settings = snap.val() || {}; Settings.populate(); });
+    db.ref('settings').once('value').then(snap=>{ State.settings = snap.val() || {}; Settings.populate(); Branding.apply(State.settings); });
   },
   slugify(text){
     return String(text).toLowerCase().trim()
@@ -1607,7 +1903,7 @@ const Products = {
     tbody.innerHTML = filtered.map(([id,p])=>{
       const url = `${location.origin}${location.pathname}?product=${p.slug}`;
       const finalPrice = Products.finalPrice(p);
-      return `<tr>
+      return `<tr data-id="${id}">
         <td data-label="Product"><div class="cell-flex">
           <img class="thumb" src="${(p.images&&p.images[0])||'https://placehold.co/80x80/EAF0FB/3B82F6?text=+'}">
           <div><div class="tname">${UI.escapeHtml(p.name)} ${p.featured?'<i class="fa-solid fa-star" style="color:#F5B400;font-size:11px;" title="Featured"></i>':''}</div><div class="tsub">/${p.slug}${p.barcode?` · <i class="fa-solid fa-barcode"></i> ${UI.escapeHtml(p.barcode)}`:''}</div></div>
@@ -1628,6 +1924,11 @@ const Products = {
         </div></td>
       </tr>`;
     }).join('');
+    SwipeActions.init('productsTableBody', {
+      editIcon:'fa-pen',
+      edit: id=>Products.openEditor(id),
+      delete: id=>Products.remove(id)
+    });
   },
   finalPrice(p){
     const price = Number(p.price)||0;
@@ -1870,13 +2171,16 @@ const Categories = {
     document.getElementById('categoriesEmpty').classList.toggle('hidden', entries.length>0);
     grid.innerHTML = entries.map(([id,c])=>{
       const count = Object.values(State.products).filter(p=>p.category===id).length;
-      return `<div class="card" style="padding:16px;">
-        <div class="cell-flex">
-          <div class="ic badge-blue" style="width:40px;height:40px;"><i class="${c.icon||'fa-solid fa-tag'}"></i></div>
-          <div style="flex:1;"><div class="tname">${UI.escapeHtml(c.name)}</div><div class="tsub">${count} product${count!==1?'s':''}</div></div>
-          <button class="btn btn-icon btn-secondary" onclick="Categories.openEditor('${id}')"><i class="fa-solid fa-pen"></i></button>
-          <button class="btn btn-icon btn-danger" onclick="Categories.remove('${id}')"><i class="fa-solid fa-trash"></i></button>
+      return `<div class="card cat-card">
+        <div class="cat-card-top">
+          <div class="ic badge-blue"><i class="${c.icon||'fa-solid fa-tag'}"></i></div>
+          <div class="row-actions">
+            <button class="btn btn-icon btn-secondary" onclick="Categories.openEditor('${id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-icon btn-danger" onclick="Categories.remove('${id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          </div>
         </div>
+        <div class="cat-card-name">${UI.escapeHtml(c.name)}</div>
+        <div class="cat-card-count">${count} product${count!==1?'s':''}</div>
       </div>`;
     }).join('');
   },
@@ -1929,7 +2233,7 @@ const Orders = {
 
     document.getElementById('ordersEmpty').classList.toggle('hidden', entries.length>0);
     tbody.innerHTML = filtered.map(([id,o])=>`
-      <tr>
+      <tr data-id="${id}">
         <td class="td-checkbox" data-label=""><input type="checkbox" class="order-check" data-id="${id}" onchange="Orders.toggleOne('${id}', this.checked)" ${State.selectedOrders.has(id)?'checked':''}></td>
         <td class="mobile-summary" data-label="" onclick="Orders.viewDetail('${id}')">
           <div class="ms-top">
@@ -1960,6 +2264,11 @@ const Orders = {
       </tr>
     `).join('');
     Orders.updateBulkBar();
+    SwipeActions.init('ordersTableBody', {
+      editIcon:'fa-eye',
+      edit: id=>Orders.viewDetail(id),
+      delete: id=>Orders.remove(id)
+    });
   },
   toggleSelectAll(checked){
     document.querySelectorAll('.order-check').forEach(cb=>{
@@ -2098,6 +2407,12 @@ const Orders = {
     const o = State.orders[id];
     if(!o) return;
     const s = State.settings;
+    // Render the order barcode to an offscreen canvas in this window (where JsBarcode
+    // is already loaded) and embed it as a plain base64 <img> in the print window —
+    // avoids needing any external script/network request inside the popup.
+    const barcodeCanvas = document.createElement('canvas');
+    const hasBarcode = BarcodeGen.renderToCanvas(barcodeCanvas, o.barcode || id, { fontSize:13, height:46, width:2, margin:6, textMargin:4 });
+    const barcodeImg = hasBarcode ? `<img src="${barcodeCanvas.toDataURL('image/png')}" class="barcode-img" alt="Order barcode">` : '';
     const win = window.open('', '_blank');
     win.document.write(`
       <html><head><title>Invoice #${UI.orderNo(id,o)}</title>
@@ -2110,6 +2425,10 @@ const Orders = {
         td.label{color:#66738F;width:150px;}
         .total-row td{font-weight:700;font-size:15px;border-top:2px solid #0F1B33;border-bottom:none;padding-top:12px;}
         .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0F1B33;padding-bottom:14px;}
+        .barcode-strip{display:flex;flex-direction:column;align-items:center;gap:2px;border:1.5px dashed #C7D0E5;border-radius:10px;padding:14px 10px 10px;margin-top:20px;}
+        .barcode-img{max-width:100%;height:56px;}
+        .barcode-strip .bc-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#66738F;margin-top:4px;}
+        @media print{ .barcode-strip{ break-inside:avoid; } }
       </style></head><body>
         <div class="header">
           <div><h1>${UI.escapeHtml(s.storeName||'Invoice')}</h1><div class="muted">${UI.escapeHtml(s.address||'')}</div><div class="muted">${UI.escapeHtml(s.storePhone||'')}</div></div>
@@ -2125,6 +2444,7 @@ const Orders = {
           <tr><td class="label">Shipping</td><td>${UI.money(o.shipping)}</td></tr>
           <tr class="total-row"><td class="label">Total</td><td>${UI.money(o.total)}</td></tr>
         </table>
+        ${barcodeImg ? `<div class="barcode-strip">${barcodeImg}<div class="bc-label">Scan for order lookup — #${UI.orderNo(id,o)}</div></div>` : ''}
       </body></html>
     `);
     win.document.close();
@@ -2341,10 +2661,17 @@ document.getElementById('customerSearch').addEventListener('input', Customers.de
    ANALYTICS
 ================================================================================ */
 let chartStatus, chartCategory, chartTrend;
-if(window.Chart){
+let _chartConfigured = false;
+function ensureChartConfigured(){
+  if(_chartConfigured || !window.Chart) return;
+  // Belt-and-braces: the UMD build auto-registers everything, but this is a harmless
+  // no-op safety net in case a different (core-only) build ever gets loaded instead.
+  if(Chart.registerables) Chart.register(...Chart.registerables);
   Chart.defaults.font.family = "'Inter', sans-serif";
   Chart.defaults.color = '#66738F';
+  _chartConfigured = true;
 }
+ensureChartConfigured();
 const Analytics = {
   range: 30, // days, or 'all'
   renderIfActive(){ if(document.getElementById('view-analytics').classList.contains('active')) Analytics.render(); },
@@ -2359,13 +2686,22 @@ const Analytics = {
     const canvasTrend = document.getElementById('chartTrend');
     if(!canvasStatus || !canvasCategory || !canvasTrend) return;
     if(!window.Chart){
-      // Chart.js failed to load (e.g. blocked/slow network) — show a clear message instead of a silent blank box.
+      // Chart.js hasn't finished loading yet (slow network, or the primary CDN failed
+      // and the fallback CDN is still fetching) — retry a few times before giving up,
+      // instead of leaving the charts permanently blank.
+      Analytics._chartLoadRetries = (Analytics._chartLoadRetries||0) + 1;
+      if(Analytics._chartLoadRetries <= 20){
+        setTimeout(Analytics.render, 250);
+        return;
+      }
       [canvasStatus, canvasCategory, canvasTrend].forEach(canvas=>{
         const wrap = canvas.closest('.chart-wrap');
         if(wrap) wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12.5px;text-align:center;padding:0 24px;line-height:1.5;"><span><i class="fa-solid fa-triangle-exclamation"></i> Charts could not load. Check your internet connection and reload the page.</span></div>';
       });
       return;
     }
+    Analytics._chartLoadRetries = 0;
+    ensureChartConfigured();
 
     const allOrders = Object.values(State.orders);
     const rangeDays = Analytics.range === 'all' ? null : Number(Analytics.range);
@@ -2499,7 +2835,6 @@ const Settings = {
     document.getElementById('setStoreName').value = s.storeName||'';
     document.getElementById('setStorePhone').value = s.storePhone||'';
     document.getElementById('setCurrency').value = s.currency||'৳';
-    document.getElementById('setLogo').value = s.logo||'';
     document.getElementById('setAddress').value = s.address||'';
     document.getElementById('setShipInside').value = s.shipInside||'';
     document.getElementById('setShipOutside').value = s.shipOutside||'';
@@ -2508,6 +2843,56 @@ const Settings = {
     document.getElementById('setFacebook').value = s.facebook||'';
     document.getElementById('setMessenger').value = s.messenger||'';
     document.getElementById('setWhatsapp').value = s.whatsapp||'';
+    State.logoData = s.logo || '';
+    Settings.renderLogoPreview();
+  },
+  onLogoSelected(e){
+    const file = (e.target.files||[])[0];
+    if(!file) return;
+    if(!file.type.startsWith('image/')){ UI.toast(`"${file.name}" isn't an image`,'error'); e.target.value=''; return; }
+    Settings.compressLogo(file, 320)
+      .then(dataUrl=>{ State.logoData = dataUrl; Settings.renderLogoPreview(); })
+      .catch(()=>UI.toast(`Could not process "${file.name}"`,'error'));
+    e.target.value = '';
+  },
+  removeLogo(){ State.logoData = ''; Settings.renderLogoPreview(); },
+  renderLogoPreview(){
+    const box = document.getElementById('setLogoPreview');
+    const rmBtn = document.getElementById('setLogoRemoveBtn');
+    if(State.logoData){
+      box.innerHTML = `<img src="${State.logoData}" alt="Store logo">`;
+      box.classList.add('has-logo');
+      rmBtn.classList.remove('hidden');
+    } else {
+      box.innerHTML = '<i class="fa-solid fa-cube"></i>';
+      box.classList.remove('has-logo');
+      rmBtn.classList.add('hidden');
+    }
+  },
+  /* Resizes a logo client-side and resolves a base64 PNG data URL (keeps transparency,
+     unlike JPEG) small enough to store as a plain string inside Realtime Database. */
+  compressLogo(file, maxDim=320){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        const img = new Image();
+        img.onload = ()=>{
+          let w = img.width, h = img.height;
+          if(w > maxDim || h > maxDim){
+            if(w >= h){ h = Math.round(h * (maxDim / w)); w = maxDim; }
+            else { w = Math.round(w * (maxDim / h)); h = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = ()=>reject(new Error('Invalid image'));
+        img.src = ev.target.result;
+      };
+      reader.onerror = ()=>reject(new Error('Read failed'));
+      reader.readAsDataURL(file);
+    });
   },
   save(section){
     let payload = {};
@@ -2516,7 +2901,7 @@ const Settings = {
         storeName: document.getElementById('setStoreName').value.trim(),
         storePhone: document.getElementById('setStorePhone').value.trim(),
         currency: document.getElementById('setCurrency').value.trim() || '৳',
-        logo: document.getElementById('setLogo').value.trim(),
+        logo: State.logoData || '',
         address: document.getElementById('setAddress').value.trim()
       };
     } else if(section==='shipping'){
@@ -2538,7 +2923,11 @@ const Settings = {
     }
     UI.loading(true,'Saving settings…');
     db.ref('settings').update(payload)
-      .then(()=>{ State.settings = {...State.settings, ...payload}; UI.loading(false); UI.toast('Settings saved','success'); })
+      .then(()=>{
+        State.settings = {...State.settings, ...payload};
+        UI.loading(false); UI.toast('Settings saved','success');
+        if(section==='store') Branding.apply(State.settings);
+      })
       .catch(err=>{ UI.loading(false); UI.toast('Save failed: '+err.message,'error'); });
   }
 };
@@ -2660,6 +3049,7 @@ const Storefront = {
       ]);
       State.settings = setSnap.val() || {};
       document.getElementById('pp_storeName').textContent = State.settings.storeName || 'Nova Store';
+      Branding.apply(State.settings);
 
       const val = prodSnap.val();
       UI.loading(false);
@@ -2717,9 +3107,9 @@ const Storefront = {
 
           <div class="pp-option-label">Quantity</div>
           <div class="qty-stepper">
-            <button onclick="Storefront.changeQty(-1)"><i class="fa-solid fa-minus"></i></button>
-            <input type="text" id="ppQty" value="1" readonly>
-            <button onclick="Storefront.changeQty(1)"><i class="fa-solid fa-plus"></i></button>
+            <button type="button" onclick="Storefront.changeQty(-1)"><i class="fa-solid fa-minus"></i></button>
+            <input type="text" inputmode="numeric" id="ppQty" value="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')" onchange="Storefront.setQty(this.value)">
+            <button type="button" onclick="Storefront.changeQty(1)"><i class="fa-solid fa-plus"></i></button>
           </div>
 
           <div class="pp-actions">
@@ -2769,6 +3159,16 @@ const Storefront = {
     const max = Number(ppState.product.stock)||99;
     ppState.qty = Math.min(max, Math.max(1, ppState.qty+delta));
     document.getElementById('ppQty').value = ppState.qty;
+  },
+  setQty(val){
+    // Fires when the user types a quantity directly and leaves the field — clamps
+    // to a valid whole number within the available stock, same range the +/- buttons use.
+    const max = Number(ppState.product.stock)||99;
+    let n = parseInt(val, 10);
+    if(isNaN(n) || n < 1) n = 1;
+    if(n > max) n = max;
+    ppState.qty = n;
+    document.getElementById('ppQty').value = n;
   },
   onDistrictChange(){
     const district = document.getElementById('of_district').value;
@@ -2870,10 +3270,189 @@ const Storefront = {
 };
 
 /* ================================================================================
+   SWIPE ACTIONS (mobile) — swipe a product/order card left to reveal quick
+   edit/view + delete buttons, without touching the desktop table markup at all.
+================================================================================ */
+const SwipeActions = {
+  MAX: 144,
+  init(tbodyId, opts){
+    const tbody = document.getElementById(tbodyId);
+    if(!tbody) return;
+    const rows = tbody.querySelectorAll(':scope > tr[data-id]');
+    rows.forEach(tr=>SwipeActions.wrapRow(tr, opts));
+    // Nudge the very first card once per device so people discover the gesture.
+    const hintKey = 'novaSwipeHintSeen_'+tbodyId;
+    try{
+      if(rows.length && window.innerWidth<=680 && !localStorage.getItem(hintKey)){
+        rows[0].classList.add('swipe-hint');
+        localStorage.setItem(hintKey, '1');
+        rows[0].addEventListener('animationend', ()=>rows[0].classList.remove('swipe-hint'), {once:true});
+      }
+    } catch(e){ /* private browsing / storage disabled — skip the nudge silently */ }
+  },
+  wrapRow(tr, opts){
+    const id = tr.dataset.id;
+    tr.classList.add('swipe-row');
+    // Move the row's existing (perfectly valid) <td> cells into a content
+    // wrapper. On desktop this wrapper is display:contents (invisible to
+    // layout); only the mobile media query turns it into the sliding panel.
+    const content = document.createElement('div');
+    content.className = 'swipe-content';
+    while(tr.firstChild) content.appendChild(tr.firstChild);
+    tr.appendChild(content);
+
+    const actions = document.createElement('div');
+    actions.className = 'swipe-actions';
+    const maxSwipe = opts.edit ? SwipeActions.MAX : SwipeActions.MAX/2;
+    if(opts.edit){
+      const btn = document.createElement('button');
+      btn.className = 'sa-edit';
+      btn.type = 'button';
+      btn.innerHTML = `<i class="fa-solid ${opts.editIcon||'fa-pen'}"></i>`;
+      btn.addEventListener('click', e=>{ e.stopPropagation(); SwipeActions.close(tr); opts.edit(id); });
+      actions.appendChild(btn);
+    }
+    const delBtn = document.createElement('button');
+    delBtn.className = 'sa-delete';
+    delBtn.type = 'button';
+    delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    delBtn.addEventListener('click', e=>{ e.stopPropagation(); SwipeActions.close(tr); opts.delete(id); });
+    actions.appendChild(delBtn);
+    tr.appendChild(actions);
+
+    SwipeActions.attachDrag(tr, content, maxSwipe);
+  },
+  attachDrag(tr, content, maxSwipe){
+    let startX=0, startY=0, dx=0, dragging=false, decided=false, horizontal=false, wasOpen=false, suppressClick=false;
+    content.addEventListener('touchstart', e=>{
+      if(window.innerWidth>680 || !e.touches.length) return;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      dx=0; dragging=true; decided=false; horizontal=false;
+      wasOpen = tr.classList.contains('swiped');
+      tr.classList.add('dragging');
+    }, {passive:true});
+    content.addEventListener('touchmove', e=>{
+      if(!dragging || !e.touches.length) return;
+      const dxRaw = e.touches[0].clientX-startX;
+      const dyRaw = e.touches[0].clientY-startY;
+      if(!decided){
+        if(Math.abs(dxRaw)>8 || Math.abs(dyRaw)>8){ decided=true; horizontal=Math.abs(dxRaw)>Math.abs(dyRaw); }
+        else return;
+      }
+      if(!horizontal) return;
+      e.preventDefault();
+      const base = wasOpen ? -maxSwipe : 0;
+      dx = Math.max(-maxSwipe, Math.min(0, base+dxRaw));
+      content.style.transform = `translateX(${dx}px)`;
+    }, {passive:false});
+    const end = ()=>{
+      if(!dragging) return;
+      dragging=false;
+      tr.classList.remove('dragging');
+      if(horizontal){
+        if(dx < -maxSwipe*0.4){
+          content.style.transform = `translateX(${-maxSwipe}px)`;
+          tr.classList.add('swiped');
+        } else {
+          content.style.transform = 'translateX(0)';
+          tr.classList.remove('swiped');
+        }
+        suppressClick = true;
+      } else if(wasOpen){
+        // Tapped an already-open card: close it instead of firing the tap-through action.
+        SwipeActions.close(tr);
+        suppressClick = true;
+      }
+    };
+    content.addEventListener('touchend', end);
+    content.addEventListener('touchcancel', end);
+    content.addEventListener('click', e=>{
+      if(suppressClick){ suppressClick=false; e.stopPropagation(); e.preventDefault(); }
+    }, true);
+  },
+  close(tr){
+    const content = tr.querySelector('.swipe-content');
+    if(content) content.style.transform = 'translateX(0)';
+    tr.classList.remove('swiped');
+  }
+};
+// Tapping anywhere outside an open swipe row closes it.
+document.addEventListener('touchstart', e=>{
+  document.querySelectorAll('tr.swiped').forEach(tr=>{ if(!tr.contains(e.target)) SwipeActions.close(tr); });
+}, {passive:true});
+
+/* ================================================================================
+   MOBILE QUICK-ACTION FAB — a contextual floating action button that only
+   appears on phone-width screens, offering the single most useful "add /
+   scan" action for whichever list view is currently open.
+================================================================================ */
+const MobileFab = {
+  config: {
+    products:   { icon:'fa-plus',    label:'Add',  action:()=>Products.openEditor() },
+    categories: { icon:'fa-plus',    label:'Add',  action:()=>Categories.openEditor() },
+    orders:     { icon:'fa-barcode', label:'Scan', action:()=>Scanner.open('orderSearch', ()=>Orders.render()) },
+    customers:  { icon:'fa-barcode', label:'Scan', action:()=>Scanner.open('customerSearch', ()=>Customers.deriveAndRender()) },
+    orderbarcode:{ icon:'fa-barcode',label:'Scan', action:()=>Scanner.open('obSearch', ()=>OrderBarcode.render()) }
+  },
+  el:null,
+  init(){
+    MobileFab.el = document.getElementById('mobileFab');
+    if(!MobileFab.el) return;
+    MobileFab.el.addEventListener('click', ()=>{
+      const cfg = MobileFab.config[State.currentView];
+      if(cfg) cfg.action();
+    });
+    window.addEventListener('resize', MobileFab.update);
+  },
+  update(viewName){
+    if(viewName) State.currentView = viewName;
+    if(!MobileFab.el) return;
+    const cfg = MobileFab.config[State.currentView];
+    if(!cfg || window.innerWidth>768){
+      MobileFab.el.classList.remove('fab-visible');
+      return;
+    }
+    MobileFab.el.innerHTML = `<i class="fa-solid ${cfg.icon}"></i><span>${cfg.label}</span>`;
+    MobileFab.el.classList.add('fab-visible');
+  }
+};
+
+/* ================================================================================
    BOOT
 ================================================================================ */
 UI.initTheme();
+UI.initSidebarCollapse();
+MobileFab.init();
 Router.init();
+MobileFab.update('dashboard');
+// Settings are publicly readable, so fetch them immediately to brand the login
+// screen (logo/name) before auth even resolves — avoids a flash of the default mark.
+db.ref('settings').once('value').then(snap=>{
+  const s = snap.val() || {};
+  State.settings = {...State.settings, ...s};
+  Branding.apply(s);
+}).catch(()=>{});
+
+// Keyboard shortcut: press "/" anywhere outside a text field to jump straight to the
+// topbar search box — a small, common admin-panel convenience.
+document.addEventListener('keydown', e=>{
+  if(e.key !== '/') return;
+  const tag = (e.target.tagName||'').toLowerCase();
+  if(tag==='input' || tag==='textarea' || tag==='select' || e.target.isContentEditable) return;
+  const search = document.getElementById('globalSearch');
+  if(search){ e.preventDefault(); search.focus(); }
+});
+
+// Back-to-top button visibility, throttled to one check per animation frame.
+let _scrollTopTicking = false;
+window.addEventListener('scroll', ()=>{
+  if(_scrollTopTicking) return;
+  _scrollTopTicking = true;
+  requestAnimationFrame(()=>{
+    document.getElementById('scrollTopBtn')?.classList.toggle('show', window.scrollY > 420);
+    _scrollTopTicking = false;
+  });
+}, { passive:true });
 </script>
 </body>
 </html>
