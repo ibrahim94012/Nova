@@ -457,7 +457,7 @@ table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
   }
   tbody tr:hover{background:var(--surface);}
   tbody td{
-    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    display:flex;align-items:center;justify-content:start;gap:14px;
     padding:10px 14px;border-bottom:1px dashed var(--border-soft);text-align:right;white-space:normal;
   }
   tbody td:last-child{border-bottom:none;}
@@ -504,20 +504,21 @@ table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
 thead th{text-align:left;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:var(--surface-2);border-bottom:1.5px solid var(--border);white-space:nowrap;}
 tbody td{padding:13px 16px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
 tbody tr:last-child td{border-bottom:none;}
+tbody tr td:last-child{gap:0;}
 tbody tr{transition:background .12s ease;}
 tbody tr:hover{background:var(--surface-2);}
 .cell-flex{display:flex;align-items:center;gap:10px;}
 .thumb{width:42px;height:42px;border-radius:9px;object-fit:cover;background:var(--surface-2);border:1px solid var(--border-soft);flex-shrink:0;}
 .tname{font-weight:600;font-size:13px;}
 .tsub{font-size:11.5px;color:var(--muted);}
-.row-actions{display:flex;gap:6px;justify-content:flex-end;}
+.row-actions{display:flex;gap:6px;justify-content:flex-start;}
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
 .empty-state i{font-size:32px;color:var(--blue-300);margin-bottom:12px;}
 .empty-state h4{margin:0 0 4px;color:var(--ink);}
 
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
 .toolbar .input,.toolbar .select{width:auto;}
-.chip-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+.chip-tabs{display:flex;gap:6px;flex-wrap:nowrap;}
 .chip-tab{padding:7px 13px;border-radius:99px;font-size:12px;font-weight:700;background:var(--surface);border:1.5px solid var(--border);color:var(--muted);transition:.15s ease;cursor:pointer;}
 .chip-tab:hover{border-color:var(--blue-300);color:var(--ink-soft);}
 .chip-tab.active{background:var(--blue-600);border-color:var(--blue-600);color:#fff;}
@@ -664,7 +665,7 @@ tbody tr:hover{background:var(--surface-2);}
    of wrapping onto extra lines — keeps every view compact and tidy on a phone. */
 @media(max-width:680px){
   .chip-tabs,.settings-nav,.pp-variant-pills,.pp-trust,.img-strip,.toolbar,.pp-badges{
-    flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    ;overflow-x:auto;-webkit-overflow-scrolling:touch;
     overscroll-behavior-x:contain;scrollbar-width:none;-ms-overflow-style:none;
     padding-bottom:2px;
   }
@@ -673,7 +674,7 @@ tbody tr:hover{background:var(--surface-2);}
   .pp-badges::-webkit-scrollbar{display:none;}
   .chip-tabs > *,.settings-nav > *,.pp-variant-pills > *,.pp-trust > *,.img-strip > *,.pp-badges > *{flex-shrink:0;}
   .toolbar{margin-left:-2px;padding-left:2px;margin-right:-2px;}
-  .toolbar > .input,.toolbar > .select{flex-shrink:0;width:auto;min-width:170px;}
+  .toolbar > .input,.toolbar > .select{flex-shrink:0;width:100%;min-width:170px;}
   .toolbar > .btn,.toolbar > .scan-btn{flex-shrink:0;}
 }
 
@@ -724,7 +725,7 @@ tbody tr:hover{background:var(--surface-2);}
 @media(max-width:680px){
   /* Regular buttons get a touch-friendly bump: taller, easy to hit accurately —
      border-radius stays inherited (pill / circle) to match the rest of the UI. */
-  .btn{padding:11px 20px;font-size:14px;}
+  .btn{;font-size:14px;}
   .btn-sm{padding:8px 15px;font-size:12.5px;}
 
   /* A view's primary action (Add Product, Export CSV…) drops below the title and
@@ -927,7 +928,7 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
       <div class="toolbar">
         <input class="input" style="min-width:200px;" id="orderSearch" placeholder="Search by name, phone, order ID or barcode…">
-        <button class="scan-btn" onclick="Scanner.open('orderSearch', ()=>Orders.render())" title="Scan order barcode to search"><i class="fa-solid fa-barcode"></i></button>
+        <button class="scan-btn" onclick="Scanner.open('orderSearch', ()=>Orders.render())" title="Scan order barcode to search"><i class="fa-solid fa-barcode"></i></button><br>
         <div class="chip-tabs" id="orderStatusTabs">
           <div class="chip-tab active" data-f="All">All</div>
           <div class="chip-tab" data-f="Pending">Pending</div>
